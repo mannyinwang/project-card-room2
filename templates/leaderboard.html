@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Card Room</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container bg-white">
+        <!-- Title -->
+        <h2 class="pt-4">Leaderboard</h2>
+        {% if user %}
+        <h6>Welcome {{user.user_name}}!</h6>
+        {% endif %}
+
+        <div class="row pt-4">
+            <!-- Top Records -->
+            <div class="col-5">
+                <h4 class="pb-2">Top Records</h4>
+                {% if records %}
+                    <table class="row no-gutters mb-4 align-items-center">
+                    {% for record in records %}
+                        <tr>
+                            <td>{{record.user_name}}</td>
+                            <td>{{record.wins}}</td>
+                            <td>{{record.losses}}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                {% else %}
+                    <h6>No games</h6>
+                {% endif %}
+            </div>
+
+            <div class="col-1"></div>
+
+            <!-- Top Bettors -->
+            <div class="col-5">
+                <h4 class="pb-2">Top Bettors</h4>
+                {% if bettors %}
+                    <table class="row no-gutters mb-4 align-items-center">
+                    {% for bettor in bettors %}
+                        <tr>
+                            <td>{{bettor.user_name}}</td>
+                            <td>{{bettor.balance}}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                {% else %}
+                    <h6>No bettors</h6>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation actions -->
+        <div class="row mt-5 mb-2"> 
+            <div class="col-1"></div>
+            <a href="/lobby" class="col-2 btn btn-dark btn-sm rounded-0">Lobby</a>
+            <div class="col-1"></div>
+            <a href="/user-profile" class="col-2 btn btn-dark btn-sm rounded-0">User Profile</a>
+            <div class="col-1"></div>
+            <a href="/logout-action" class="col-2 btn btn-dark btn-sm rounded-0">Logout</a>
+            <div class="col-5"></div>
+        </div>
+        
+    </div>
+</body>
+</html>

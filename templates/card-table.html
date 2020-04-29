@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Card Room</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container bg-white">
+        <!-- Title -->
+        <h2 class="row pt-4">Card Table</h2>
+        <!-- <h3>Welcome {{user.user_name}}!</h3> -->
+
+
+        <!-- Game info -->
+        <div class="row pt-4">
+            <h4 class="row pb-2">Game Info</h4>
+            <p class="col-12">Game Name = {{game.game_name}}</p>
+            <p class="col-12">Game Status = {{game.game_status}}</p>
+            <p class="col-12">Pot = {{game.pot}}</p>
+            <p class="col-12">Max Raise = {{game.max_raise}}</p>
+            <p class="col-12">Time Limit = {{game.time_limit}}</h6>
+            <p class="col-12">Number of Players = {{game.num_players}}</h6>
+            <p class="col-12">Turn = {{game.turn}}</h6>
+        </div>
+
+        <!-- Players info -->
+        <div class="row pt-5">
+            <h4 class="col-12 pb-2">Players</h4>
+            <table class="table table-fixed text-left table-hover">
+                <tbody>
+                    <tr scope='row'>
+                        <th>Player</th>
+                        <th>Balance</th>
+                        <th>Photo</th>
+                        <th>Message</th>
+                        <th>Cards</th>
+                    </tr>
+                    {% for player in players %}
+                        <tr scope='row'>
+                            <td>{{player.user_name}}</td>
+                            <td>{{player.balance}}</td>
+                            <td>{{player.photo}}</td>
+                            <td>{{player.message}}</td>
+                            <td>
+                                {% for card in player.cards %}
+                                    {{card.number}}
+                                    {% if card.suit == 1 %}S
+                                    {% elif card.suit == 2 %}H
+                                    {% elif card.suit == 3 %}D
+                                    {% else %}C
+                                    {% endif %}
+                                    {% if card.face_up %} face-up |
+                                    {% else %} down |
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Game play actions -->
+        <div class="row pt-5">
+            <h4 class="col-12 pb-3">Player Actions</h4>
+            {% if game.turn == 0 %}
+            <div class="col-2">
+                <a href="/card-table/fold/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Fold</a>
+            </div>
+            <div class="col-2">
+                <a href="/card-table/call/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Call</a>
+            </div>
+            <form class="col-4" action="/card-table/raise" method="post">
+                <input type="text" name="raise_amount" placeholder="Raise amount" class="rounded-0">
+                <button type="submit" class="col-3 btn btn-dark btn-sm">Raise</button>
+            </form>
+            {% else %}
+            <div class="col-2">
+                <a href="/card-table/fold/{{game.game_id}}" class="disabled btn btn-dark btn-sm btn-block">Fold</a>
+            </div>
+            <div class="col-2">
+                <a href="/card-table/call/{{game.game_id}}" class="disabled btn btn-dark btn-sm btn-block">Call</a>
+            </div>
+            <form class="col-4" action="/card-table/raise" method="post">
+                <input type="text" name="raise_amount" placeholder="Raise amount" class="rounded-0" disabled>
+                <button type="submit" class="col-3 btn btn-dark btn-sm" disabled>Raise</button>
+            </form>
+            {% endif %}
+            <form class="col-4" action="/card-table/message" method="post">
+                <input type="text" name="message" placeholder="Message" class="rounded-0">
+                <button type="submit" class="col-3 btn btn-dark btn-sm">Chat</button>
+            </form>
+            <div class="col-2 pt-5">
+                <a href="/card-table/leave/{{game.game_id}}" class="btn btn-dark btn-sm btn-block">Leave Game</a>
+            </div>
+        </div>
+
+    </div> <!-- End container-->
+</body>
+</html>
