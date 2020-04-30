@@ -30,13 +30,13 @@
                 <tr>
                     {% for game in games %}
                         </tr>
-                            <td>{{game.game_name}}</td>
-                            <td>{{game.ante}}</td>
-                            <td>{{game.max_raise}}</td>
-                            <td>{{game.min_players}}</td>
+                            <td>{{game.game_type.game_name}}</td>
+                            <td>{{game.game_type.ante}}</td>
+                            <td>{{game.game_type.max_raise}}</td>
+                            <td>{{game.game_type.min_players}}</td>
                             {% if game.game_status == 0 %} <!-- game is waiting for players to join -->
                                 <td>Waiting</td>
-                                <td><a href="/lobby/join-game/{{game.game_id}}" class="button btn-sm btn-primary">Join</a></td>
+                                <td><a href="/lobby/join-game/{{game.id}}" class="button btn-sm btn-primary">Join</a></td>
                             {% else %}
                                 <td>Playing</td>
                                 <td></td>

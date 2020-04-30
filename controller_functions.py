@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from models import *
 from utilities import *
+from config import migrate
 
 
 def login_registration():
@@ -41,7 +42,7 @@ def lobby_join_game(game_id):
         if user:
             game = getGame(int(game_id))
             num_players = addPlayerToGame(user, int(game_id))
-            if num_players >= game['min_players']:
+            if num_players >= game.game_type.min_players:
                 startGame(int(game_id))
                 return redirect('/card-table')
             else:
@@ -55,7 +56,7 @@ def lobby_new_game():
             game_id = createNewGame(request.form['game_type_id'])
             num_players = addPlayerToGame(user, game_id)
             game = getGame(game_id)
-            if num_players >= game['min_players']:
+            if num_players >= game.game_type.min_players:
                 startGame(game_id)
                 return redirect('/card-table')
             else:
