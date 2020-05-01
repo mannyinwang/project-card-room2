@@ -12,9 +12,20 @@
 </head>
 <body>
     <div class="container bg-white">
-        <!-- Title -->
-        <h2>Lobby</h2>
-        <h6>Welcome {{user.user_name}}!</h6>
+        <div class="row justify-content-between mt-4 mb-2">
+            <!-- Title -->
+            <div class="col-auto">
+                <h2>Lobby</h2>
+                <h6>Welcome {{user.user_name}}!</h6>
+            </div>
+            <!-- Navigation actions -->
+            <div class="col-auto">
+                <a href="#" class="inactive col-auto btn btn-secondary btn-sm mx-1 mt-1 mb-3">Lobby</a>
+                <a href="/leaderboard" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Leader Board</a>
+                <a href="/user-profile" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">User Profile</a>
+                <a href="/logout-action" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Logout</a>
+            </div>
+        </div>
 
         <!-- Active games -->
         <div class="row pt-4">
@@ -25,6 +36,7 @@
                     <th>Game</th>
                     <th>Ante</th>
                     <th>Max Raise</th>
+                    <th>Pot</th>
                     <th>Players</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -34,10 +46,15 @@
                             <td>{{game.game_type.game_name}}</td>
                             <td>{{game.game_type.ante}}</td>
                             <td>{{game.game_type.max_raise}}</td>
+                            <td>{{game.pot}}</td>
                             <td>{{game.num_players}} / {{game.game_type.min_players}} min - {{game.game_type.max_players}} max</td>
                             {% if game.game_status == 0 %} <!-- game is waiting for players to join -->
                                 <td>Waiting</td>
+                                {% if user.current_game_id == game.id %}
+                                <td><a href="/lobby/leave-game/{{game.id}}" class="button btn-sm btn-primary">Leave</a></td>
+                                {% else: %}
                                 <td><a href="/lobby/join-game/{{game.id}}" class="button btn-sm btn-primary">Join</a></td>
+                                {% endif %}
                             {% else %}
                                 <td>Playing</td>
                                 <td></td>
@@ -53,7 +70,7 @@
         <!-- New game inputs -->
         <form action="/lobby/new-game" method="post" class="col-5 pt-3">
             <div class="row">
-                <select type="text" name="game_type_id" class="col-3 rounded-0" required>
+                <select type="text" name="game_type_id" class="input-lg col-4 rounded-0 px-3 mx-3" required>
                     {% for game_type in game_types %}
                         <option value="{{game_type.id}}">{{game_type.game_name}}</option>
                     {% endfor %}
@@ -62,16 +79,6 @@
             </div>
         </form>
 
-        <!-- Navigation actions -->
-        <div class="row mt-5 mb-2"> 
-            <div class="col-1"></div>
-            <a href="/user-profile" class="col-2 btn btn-dark btn-sm rounded-0">User Profile</a>
-            <div class="col-1"></div>
-            <a href="/leaderboard" class="col-2 btn btn-dark btn-sm rounded-0">Leaderboard</a>
-            <div class="col-1"></div>
-            <a href="/logout-action" class="col-2 btn btn-dark btn-sm rounded-0">Logout</a>
-            <div class="col-5"></div>
-        </div>
         
     </div> <!-- End container-->
 </body>

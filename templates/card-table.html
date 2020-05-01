@@ -51,10 +51,10 @@
                             <td>{% if player.turn == game.current_turn %}
                                 {% for card in cards %}
                                     {{card.number}}
-                                    {% if card.suit == 1 %}S
-                                    {% elif card.suit == 2 %}H
-                                    {% elif card.suit == 3 %}D
-                                    {% else %}C
+                                    {% if card.suit == 1 %}C
+                                    {% elif card.suit == 2 %}D
+                                    {% elif card.suit == 3 %}H
+                                    {% else %}S
                                     {% endif %}
                                     {% if card.face_up %} face-up |
                                     {% else %} down |

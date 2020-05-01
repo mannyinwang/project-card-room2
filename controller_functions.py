@@ -41,11 +41,23 @@ def lobby_join_game(game_id):
         if user:
             game = getGame(int(game_id))
             num_players = addPlayerToGame(user, int(game_id))
-            if num_players >= game.game_type.min_players:
-                startGame(int(game_id))
-                return redirect('/card-table')
-            else:
+            if num_players:
+                if num_players >= game.game_type.min_players:
+                    startGame(int(game_id))
+                    return redirect('/card-table')
+                else:
+                    return redirect('/lobby')
+            else:  # user already in a game
                 return redirect('/lobby')
+    return redirect('/login-registration')
+
+def lobby_leave_game(game_id):
+    if 'user_id' in session:
+        user = getUser(session['user_id'])
+        if user:
+            getGame(int(game_id))
+            removePlayerFromGame(user, int(game_id))
+            return redirect('/lobby')
     return redirect('/login-registration')
 
 def lobby_new_game():
@@ -101,9 +113,8 @@ def card_table_call(game_id):
     if 'user_id' in session:
         user = getUser(session['user_id'])
         if user:
-            game = getGame(int(game_id))
-            if game:
-                gameCall(user, game)
+            if user.current_game_id == int(game_id):
+                gameCall(user, int(game_id))
                 return redirect('/card-table')
     return redirect('/lobby')
 

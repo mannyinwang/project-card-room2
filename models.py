@@ -43,8 +43,8 @@ class Player(db.Model):
     __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
     total_bet = db.Column(db.Integer)
-    result = db.Column(db.Integer)
-    turn = db.Column(db.Integer)
+    result = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: win, 3: loss, 4: exited before playing
+    turn = db.Column(db.Integer)  # position of player at the table
     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_players")
     player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)

@@ -12,9 +12,20 @@
 </head>
 <body>
     <div class="container bg-white">
-        <!-- Title -->
-        <h2 class="pt-4">User Profile</h2>
-        <h6>Welcome {{user.user_name}}!</h6>
+        <div class="row justify-content-between mt-4 mb-2">
+            <!-- Title -->
+            <div class="col-auto">
+                <h2>User Profile</h2>
+                <h6>Welcome {{user.user_name}}!</h6>
+            </div>
+            <!-- Navigation actions -->
+            <div class="col-auto">
+                <a href="/lobby" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Lobby</a>
+                <a href="/leaderboard" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Leader Board</a>
+                <a href="#" class="inactive col-auto btn btn-secondary btn-sm mx-1 mt-1 mb-3">User Profile</a>
+                <a href="/logout-action" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Logout</a>
+            </div>
+        </div>
 
         <!-- User info -->
         <h4 class="pb-2 pt-4">User Info</h4>
@@ -38,17 +49,6 @@
             <div class="col-1"></div>
             <p class="col-2">{{user.wins}}/{{user.losses}}</p>
         </div> -->
-
-        <!-- Navigation actions -->
-        <div class="row mt-5 mb-2"> 
-            <div class="col-1"></div>
-            <a href="/lobby" class="col-2 btn btn-dark btn-sm rounded-0">Lobby</a>
-            <div class="col-1"></div>
-            <a href="/leaderboard" class="col-2 btn btn-dark btn-sm rounded-0">Leaderboard</a>
-            <div class="col-1"></div>
-            <a href="/logout-action" class="col-2 btn btn-dark btn-sm rounded-0">Logout</a>
-            <div class="col-5"></div>
-        </div>
         
     </div>
 </body>

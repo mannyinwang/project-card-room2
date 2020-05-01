@@ -115,15 +115,45 @@ def addToNumPlayers(game_id, adder):
     return num_players + adder
 
 def addPlayerToGame(user, game_id):
-    # add user to players for game_id
-    new_player = Player(result=0, total_bet=0, turn=0, game_id=game_id, player_id = user.id)
-    db.session.add(new_player)
-    db.session.commit()
-    num_players = addToNumPlayers(game_id, 1)
-    # update users.current_game_id to game_id
-    user.current_game_id = game_id
-    db.session.commit()
-    return num_players
+    # if user is already in game, cannot add
+    if user.current_game_id == None:
+        # check if user was previously a player in the game
+        player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
+        if player:  # player was previously in the game
+            player.result = 0  # set to 0 for waiting
+            db.session.commit()
+        else:
+            # add user to players for game_id
+            new_player = Player(result=0, total_bet=0, turn=0, game_id=game_id, player_id = user.id)
+            db.session.add(new_player)
+            db.session.commit()
+        # increment number of players in game by 1
+        num_players = addToNumPlayers(game_id, 1)
+        # update users.current_game_id to game_id
+        user.current_game_id = game_id
+        db.session.commit()
+        return num_players
+    else:
+        return False  # cannot add user to game since already in a game
+
+def removePlayerFromGame(user, game_id):
+    # if user not in a game, cannot remove
+    if user.current_game_id != None:
+        # remove user to players for game_id
+        player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
+        if player:
+            player.result = 4  # set to 4 for exited before playing
+            db.session.commit()
+            # decrement number of players in game by 1
+            num_players = addToNumPlayers(game_id, -1) 
+            # update users.current_game_id to 0
+            user.current_game_id = None
+            db.session.commit()
+            return num_players
+        else:
+            return False
+    else:
+        return False  # cannot remove user from game since not in a game
 
 def startGame(game_id):
     # change games.game_status to 1 and set starting current_turn
@@ -152,18 +182,20 @@ def startGame(game_id):
     return True
 
 def getCardsInDeck(game_id):
-    cards = Game.query.get(game_id).game_cards
+    cards = Card.query.filter_by(game_id=game_id)
     return cards
 
 def dealCard(game_id, user_id, face_up):
     # randomly pick card from remaining undealt cards in deck
     cards = getCardsInDeck(game_id)
-    card_id = cards[randint(0, len(cards)-1)]['card_id']
+    card = cards[randint(0, cards.count()-1)]
     # deal card to user
-    card = Card.query.get(card_id)
     card.player_id = user_id
     card.face_up = face_up
     db.session.commit()
+    return
+
+def advanceTurn(game_id):
     return
 
 def makeBet(user, game, amount):
@@ -191,6 +223,7 @@ def gameLeave(user, game_id):
     return False
 
 def gameCall(user, game_id):
+    dealCard(game_id, user.id, 1)
     return False
 
 def gameRaise(user, game_id, raise_amount):

@@ -10,9 +10,10 @@ app.add_url_rule('/registration-action', view_func=registration_action, methods=
 app.add_url_rule('/user-profile', view_func=user_profile)
 app.add_url_rule('/lobby', view_func=lobby)
 app.add_url_rule('/lobby/join-game/<game_id>', view_func=lobby_join_game)
+app.add_url_rule('/lobby/leave-game/<game_id>', view_func=lobby_leave_game)
 app.add_url_rule('/lobby/new-game', view_func=lobby_new_game, methods=['POST'])
 app.add_url_rule('/card-table', view_func=card_table)
-app.add_url_rule('/card-table/dummy', view_func=DUMMYcard_table)
+app.add_url_rule('/card-table/dummy', view_func=DUMMYcard_table)  # route for dummy data for developing front-end for /card-table
 app.add_url_rule('/card-table/fold/<game_id>', view_func=card_table_fold)
 app.add_url_rule('/card-table/call/<game_id>', view_func=card_table_call)
 app.add_url_rule('/card-table/raise', view_func=card_table_raise, methods=['POST'])
