@@ -1,4 +1,4 @@
-from config import app, db, migrate, func, or_
+from config import db, func
 
 class User(db.Model):
     __tablename__ = "users"
@@ -49,6 +49,7 @@ class Player(db.Model):
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_players")
     player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     player = db.relationship("User", foreign_keys=[player_id], backref="user_players")
+    cards = db.relationship("Card", back_populates="player")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -66,13 +67,15 @@ class Message(db.Model):
 class Card(db.Model):
     __tablename__ = "cards"
     id = db.Column(db.Integer, primary_key=True)
-    number = db.Column(db.Integer)  # 1: ace, 2-10: 2-10, 11: jack, 12: queen, 13: king
+    number = db.Column(db.Integer)  # 2-10: 2-10, 11: jack, 12: queen, 13: king, 14: ace
     suit = db.Column(db.Integer)  # 1: clubs, 2: diamonds, 3: hearts, 4: spades
     face_up = db.Column(db.Boolean, unique=False, default=False)  # false: card is face down, true: card is face up
     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_cards")
-    player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # is null if in the deck, i.e. not in any player's possession
-    player = db.relationship("User", foreign_keys=[player_id], backref="user_cards")
+    player_id = db.Column(db.Integer, db.ForeignKey("players.player_id"), nullable=True)
+    player = db.relationship("Player", back_populates="cards")
+    # player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # is null if in the deck, i.e. not in any player's possession
+    # player = db.relationship("User", foreign_keys=[player_id], backref="user_cards")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 

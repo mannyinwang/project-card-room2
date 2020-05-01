@@ -1,5 +1,5 @@
 from config import app
-from controller_functions import *
+from controller import *
 from dummy import DUMMYcard_table
 
 app.add_url_rule('/', view_func=login_registration)
@@ -19,6 +19,7 @@ app.add_url_rule('/card-table/call/<game_id>', view_func=card_table_call)
 app.add_url_rule('/card-table/raise', view_func=card_table_raise, methods=['POST'])
 app.add_url_rule('/card-table/message', view_func=card_table_message, methods=['POST'])
 app.add_url_rule('/card-table/leave/<game_id>', view_func=card_table_leave)
+app.add_url_rule('/card-table/new-game/<game_id>', view_func=card_table_new_game)
 app.add_url_rule('/leaderboard', view_func=leaderboard)
 
 app.add_url_rule('/logout-action', view_func=logout_action)

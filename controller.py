@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, session
-from models import *
 from utilities import *
+from flask_socketio import SocketIO
 
 
 def login_registration():
-    session['user_id']= 0  # logout any user
+    session['user_id']= None  # logout any user
     return render_template('login-registration.html')
 
 def login_action():
@@ -30,6 +30,10 @@ def lobby():
     if 'user_id' in session:
         user = getUser(session['user_id'])
         if user:
+            if user.current_game_id:
+                game = getGame(user.current_game_id)
+                if game.game_status == 1:
+                    return redirect('/card-table')
             games = getActiveGames()
             game_types = getGameTypes()
             return render_template('lobby.html', user = user, games = games, game_types = game_types)
@@ -42,10 +46,13 @@ def lobby_join_game(game_id):
             game = getGame(int(game_id))
             num_players = addPlayerToGame(user, int(game_id))
             if num_players:
-                if num_players >= game.game_type.min_players:
+                if num_players >= getGameMinPlayers(game):
                     startGame(int(game_id))
+                    socketio.emit("card-table update") # notify other players
+                    socketio.emit("lobby update") # notify others
                     return redirect('/card-table')
                 else:
+                    socketio.emit("lobby update") # notify others
                     return redirect('/lobby')
             else:  # user already in a game
                 return redirect('/lobby')
@@ -57,6 +64,7 @@ def lobby_leave_game(game_id):
         if user:
             getGame(int(game_id))
             removePlayerFromGame(user, int(game_id))
+            socketio.emit("lobby update") # notify others
             return redirect('/lobby')
     return redirect('/login-registration')
 
@@ -67,8 +75,10 @@ def lobby_new_game():
             game_id = createNewGame(request.form['game_type_id'])
             num_players = addPlayerToGame(user, game_id)
             game = getGame(game_id)
-            if num_players >= game.game_type.min_players:
+            if num_players >= getGameMinPlayers(game):
                 startGame(game_id)
+                socketio.emit("card-table update") # notify other players
+                socketio.emit("lobby update") # notify others
                 return redirect('/card-table')
             else:
                 return redirect('/lobby')
@@ -83,13 +93,15 @@ def card_table():
             game = getGame(game_id)
             players = getPlayers(game_id)
             cards = getCards(game_id, user_id)
+            user_turn = getUserTurn(game_id, user_id)
             messages = []
             for player in players:
                 messages.append(getMessages(game_id, player.player_id))
-    if game:
-        return render_template('card-table.html', user = user, game = game, players = players, cards = cards, messages = messages)
-    else:
-        return redirect('/lobby')
+            if game:
+                return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards, messages = messages)
+            else:
+                return redirect('/lobby')
+    return redirect('/login-registration')
 
 def card_table_fold(game_id):
     if 'user_id' in session:
@@ -97,7 +109,8 @@ def card_table_fold(game_id):
         if user:
             game = getGame(int(game_id))
             if game:
-                gameFold(user, game)
+                gameFold(user, game_id)
+                socketio.emit("card-table update") # notify other players
     return redirect('/card-table')
 
 def card_table_leave(game_id):
@@ -106,7 +119,10 @@ def card_table_leave(game_id):
         if user:
             game = getGame(int(game_id))
             if game:
-                gameFold(user, game)
+                if game.game_status ==1:
+                    gameFold(user, game_id)
+                gameLeave(user)
+                socketio.emit("card-table update") # notify other players
     return redirect('/lobby')
 
 def card_table_call(game_id):
@@ -116,6 +132,7 @@ def card_table_call(game_id):
             if user.current_game_id == int(game_id):
                 gameCall(user, int(game_id))
                 advanceTurn(int(game_id))
+                socketio.emit("card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -126,6 +143,7 @@ def card_table_raise():
             game = getGame(request.form['game_id'])
             if game:
                 gameRaise(user, game, request.form['raise_amount'])
+                socketio.emit("card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -136,7 +154,26 @@ def card_table_message():
             game = getGame(request.form['game_id'])
             if game:
                 gameMessage(user, game, request.form['message'])
+                socketio.emit("card-table update") # notify other players
                 return redirect('/card-table')
+    return redirect('/lobby')
+
+def card_table_new_game(game_id):
+    if 'user_id' in session:
+        user = getUser(session['user_id'])
+        if user:
+            game = getGame(int(game_id))
+            if game:
+                if game.num_players >= getGameMinPlayers(game):
+                    gameStartNewGame(int(game_id))
+                    socketio.emit("card-table update") # notify other players
+                    return redirect('/card-table')
+                else:
+                    gameLeave(user)
+                    new_game_id = createNewGame(game.game_type_id)
+                    num_players = addPlayerToGame(user, new_game_id)
+                    socketio.emit("card-table update") # notify other players
+                    return redirect('/lobby')
     return redirect('/lobby')
 
 def leaderboard():
