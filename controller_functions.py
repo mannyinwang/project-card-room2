@@ -115,6 +115,7 @@ def card_table_call(game_id):
         if user:
             if user.current_game_id == int(game_id):
                 gameCall(user, int(game_id))
+                advanceTurn(int(game_id))
                 return redirect('/card-table')
     return redirect('/lobby')
 

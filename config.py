@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import func, or_  # for NOW() timestamp function
+from sqlalchemy.sql import func, or_, and_ # for NOW() timestamp function
 from flask_migrate import Migrate
 import re  # the regex module    
 from flask_bcrypt import Bcrypt

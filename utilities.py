@@ -1,5 +1,5 @@
 from flask import flash
-from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, app, db, migrate, func, or_
+from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, app, db, migrate, func, or_, and_
 from flask_socketio import SocketIO
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, Play
@@ -182,20 +182,29 @@ def startGame(game_id):
     return True
 
 def getCardsInDeck(game_id):
-    cards = Card.query.filter_by(game_id=game_id)
-    return cards
+    cards = Card.query.filter_by(game_id=game_id, player_id=None)
+    if cards.count() == 0:
+        return False
+    else:
+        return cards
 
 def dealCard(game_id, user_id, face_up):
     # randomly pick card from remaining undealt cards in deck
     cards = getCardsInDeck(game_id)
-    card = cards[randint(0, cards.count()-1)]
-    # deal card to user
-    card.player_id = user_id
-    card.face_up = face_up
-    db.session.commit()
-    return
+    if cards:
+        card = cards[randint(0, cards.count()-1)]
+        # deal card to user
+        card.player_id = user_id
+        card.face_up = face_up
+        db.session.commit()
+        return True
+    else: # no cards left in deck
+        return False
 
 def advanceTurn(game_id):
+    game = getGame(game_id)
+    game.current_turn = (game.current_turn)% game.num_players + 1
+    db.session.commit()
     return
 
 def makeBet(user, game, amount):
