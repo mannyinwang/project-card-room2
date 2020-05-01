@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from models import *
 from utilities import *
-from config import migrate
 
 
 def login_registration():
@@ -63,15 +62,6 @@ def lobby_new_game():
                 return redirect('/lobby')
     return redirect('/login-registration')
 
-def DUMMYcard_table():
-    game_id = getGameIDFromUserID(user_id=1)
-    game, players = DUMMYgetGame(game_id)
-    user = {}
-    if game:
-        return render_template('card-table.html', user = user, game = game, players = players)
-    else:
-        return redirect('/lobby')
-
 def card_table():
     if 'user_id' in session:
         user_id = session['user_id']
@@ -79,9 +69,13 @@ def card_table():
         if user:
             game_id = getGameIDFromUserID(user_id)
             game = getGame(game_id)
-            players = getPlayersWithCardsAndMessages(game_id)
+            players = getPlayers(game_id)
+            cards = getCards(game_id, user_id)
+            messages = []
+            for player in players:
+                messages.append(getMessages(game_id, player.player_id))
     if game:
-        return render_template('card-table.html', user = user, game = game, players = players)
+        return render_template('card-table.html', user = user, game = game, players = players, cards = cards, messages = messages)
     else:
         return redirect('/lobby')
 

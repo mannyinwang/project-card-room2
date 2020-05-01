@@ -18,13 +18,14 @@
 
         <!-- Active games -->
         <div class="row pt-4">
+            <h4 class="col-12 pb-2">Active Games</h4>
             {% if games %}
-            <table>
+            <table class="table table-fixed text-left table-hover">
                 <tr>
                     <th>Game</th>
                     <th>Ante</th>
                     <th>Max Raise</th>
-                    <th>Min Players</th>
+                    <th>Players</th>
                     <th>Status</th>
                     <th>Action</th>
                 <tr>
@@ -33,7 +34,7 @@
                             <td>{{game.game_type.game_name}}</td>
                             <td>{{game.game_type.ante}}</td>
                             <td>{{game.game_type.max_raise}}</td>
-                            <td>{{game.game_type.min_players}}</td>
+                            <td>{{game.num_players}} / {{game.game_type.min_players}} min - {{game.game_type.max_players}} max</td>
                             {% if game.game_status == 0 %} <!-- game is waiting for players to join -->
                                 <td>Waiting</td>
                                 <td><a href="/lobby/join-game/{{game.id}}" class="button btn-sm btn-primary">Join</a></td>

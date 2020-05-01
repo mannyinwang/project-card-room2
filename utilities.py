@@ -50,7 +50,7 @@ def getActiveGames():
     # get game info for all active games, i.e. with game_status == 0 or 1
     # game_status: 0 if waiting, 1 if playing, 2 if completed
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
-    active_games = Game.query.filter_by(game_status = 0).all() # | (game_status = 1)).all()
+    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status ==1)).all()
     return active_games  # return game info
 
 def getGameTypes():
@@ -60,8 +60,11 @@ def getGameTypes():
     return game_types  # return game types
 
 def getGameIDFromUserID(user_id):
-    game_id = Player.query.filter_by(player_id=user_id).first().game_id
-    return game_id
+    game = Player.query.filter_by(player_id=user_id).first()
+    if game:
+        return game.game_id
+    else:
+        return False
 
 def getGame(game_id):
     # get game info for game_id
@@ -77,71 +80,23 @@ def getCards(game_id, player_id):
     cards = Card.query.filter_by(game_id=game_id, player_id=player_id)
     return cards
 
-def getMessages(game_id, user_id):
-    messages = Message.query.filter_by(game_id=game_id, user_id=user_id)
-    return messages
+def getMessages(game_id, player_id):
+    result = Message.query.filter_by(game_id=game_id, user_id=player_id).order_by(Message.created_at.desc()).first()
+    if result: 
+        return result.message
+    else:
+        return False
 
-def getPlayersWithCardsAndMessages(game_id):
-    players = getPlayers(game_id)
-    for player in players:
-        player['cards'] = getCards(game_id, player['id'])
-        messages = getMessages(game_id, player['id'])
-        if messages:
-            player['message'] = messages[0]
-        else:
-            player['message'] = False
-    return players
-
-def DUMMYgetGame(game_id):
-    game = {}
-    game['game_id'] = 1
-    game['game_status'] = 1
-    game['pot'] = 200
-    game['game_name'] = '5-Card Stud'
-    game['time_limit'] = 30
-    game['current_turn'] = 0
-    game['num_players'] = 4
-    game['min_players'] = 4
-    game['max_players'] = 4
-    game['ante'] = 10
-    game['max_raise'] = 50
-    players = [{},{},{}]
-    players[0] = {}
-    players[0]['user_id'] = 1
-    players[0]['user_name'] = "Mary"
-    players[0]['balance'] = 7000
-    players[0]['photo'] = False
-    players[0]['message'] = 'Hi All!'
-    players[0]['cards'] = [{},{},{},{},{}]
-    players[0]['cards'][0] = {'number': 5, 'suit': 1, 'face_up': 1}
-    players[0]['cards'][1] = {'number': 10, 'suit': 1, 'face_up': 1}
-    players[0]['cards'][2] = {'number': 1, 'suit': 2, 'face_up': 0}
-    players[0]['cards'][3] = {'number': 7, 'suit': 3, 'face_up': 0}
-    players[0]['cards'][4] = {'number': 11, 'suit': 4, 'face_up': 0}
-    players[1] = {}
-    players[1]['user_id'] = 2
-    players[1]['user_name'] = "Joe"
-    players[1]['balance'] = 5000
-    players[1]['photo'] = False
-    players[1]['message'] = 'Hi!'
-    players[1]['cards'] = [{},{},{},{}]
-    players[1]['cards'][0] = {'number': 11, 'suit': 1, 'face_up': 1}
-    players[1]['cards'][1] = {'number': 12, 'suit': 2, 'face_up': 1}
-    players[1]['cards'][2] = {'number': 1, 'suit': 1, 'face_up': 1}
-    players[1]['cards'][3] = {'number': 6, 'suit': 4, 'face_up': 0}
-    players[2] = {}
-    players[2]['user_id'] = 3
-    players[2]['user_name'] = "Elizabeth"
-    players[2]['balance'] = 3000
-    players[2]['photo'] = False
-    players[2]['message'] = "Hey losers!"
-    players[2]['cards'] = [{},{},{},{},{}]
-    players[2]['cards'][0] = {'number': 3, 'suit': 1, 'face_up': 1}
-    players[2]['cards'][1] = {'number': 5, 'suit': 2, 'face_up': 1}
-    players[2]['cards'][2] = {'number': 1, 'suit': 2, 'face_up': 0}
-    players[2]['cards'][3] = {'number': 1, 'suit': 3, 'face_up': 0}
-    players[2]['cards'][4] = {'number': 1, 'suit': 4, 'face_up': 0}
-    return game, players
+# def getPlayersWithCardsAndMessages(game_id):
+#     players = getPlayers(game_id)
+#     for player in players:
+#         player['cards'] = getCards(game_id, player['id'])
+#         messages = getMessages(game_id, player['id'])
+#         if messages:
+#             player['message'] = messages[0]
+#         else:
+#             player['message'] = False
+#     return players
 
 def createNewGame(game_type_id):
     new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, current_turn=0, num_players=0)
