@@ -61,8 +61,10 @@
                                 <td>Waiting</td>
                                 {% if user.current_game_id == game.id %}
                                 <td><a href="/lobby/leave-game/{{game.id}}" class="button btn-sm btn-primary">Leave</a></td>
-                                {% else: %}
+                                {% elif not user.current_game_id: %}
                                 <td><a href="/lobby/join-game/{{game.id}}" class="button btn-sm btn-primary">Join</a></td>
+                                {% else %}
+                                <td></td>
                                 {% endif %}
                             {% else %}
                                 <td>Playing</td>

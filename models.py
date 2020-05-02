@@ -23,6 +23,10 @@ class Game(db.Model):
     game_status = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: completed
     pot = db.Column(db.Integer)
     current_turn = db.Column(db.Integer)
+    starting_turn = db.Column(db.Integer)
+    current_bet = db.Column(db.Integer)
+    betting = db.Column(db.Boolean, unique=False, default=False) # 0: done with betting round, # 1: betting round
+    round_num = db.Column(db.Integer)  # number of rounds of cards dealt
     num_players = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
@@ -36,6 +40,18 @@ class GameType(db.Model):
     max_players = db.Column(db.Integer)
     ante = db.Column(db.Integer)
     max_raise = db.Column(db.Integer)
+    rounds = db.relationship("GameRound", back_populates="game_type")
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
+class GameRound(db.Model):
+    __tablename__ = "game_rounds"
+    id = db.Column(db.Integer, primary_key=True)
+    round_num = db.Column(db.Integer)
+    face_up = db.Column(db.Boolean, unique=False, default=False)  # false: round of cards is dealt face down, true: face up
+    betting = db.Column(db.Boolean, unique=False, default=False)  # false: no betting after round dealt, true: betting after round dealt
+    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True) 
+    game_type = db.relationship("GameType", back_populates="rounds")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -75,19 +91,18 @@ class Card(db.Model):
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_cards")
     player_id = db.Column(db.Integer, db.ForeignKey("players.player_id"), nullable=True)
     player = db.relationship("Player", back_populates="cards")
-    # player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # is null if in the deck, i.e. not in any player's possession
-    # player = db.relationship("User", foreign_keys=[player_id], backref="user_cards")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
-class Play(db.Model):
-    __tablename__ = "plays"
-    id = db.Column(db.Integer, primary_key=True)
-    action = db.Column(db.Integer) # 0: fold, 1: call/check, 2: raise [for blackjack... 3: split, 4: double]
-    amount = db.Column(db.Integer) # amount of bet if a raise or double
-    card_id = db.Column(db.Integer, db.ForeignKey("cards.id"), nullable=True)
-    card = db.relationship("Card", foreign_keys=[card_id], backref="card_plays")
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
-    game = db.relationship("Game", foreign_keys=[game_id], backref="game_plays")
-    created_at = db.Column(db.DateTime, server_default=func.now())
-    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+# add later if want to record all plays
+# class Play(db.Model):
+#     __tablename__ = "plays"
+#     id = db.Column(db.Integer, primary_key=True)
+#     action = db.Column(db.Integer) # 0: fold, 1: call/check, 2: raise [for blackjack... 3: split, 4: double]
+#     amount = db.Column(db.Integer) # amount of bet if a raise or double
+#     card_id = db.Column(db.Integer, db.ForeignKey("cards.id"), nullable=True)
+#     card = db.relationship("Card", foreign_keys=[card_id], backref="card_plays")
+#     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
+#     game = db.relationship("Game", foreign_keys=[game_id], backref="game_plays")
+#     created_at = db.Column(db.DateTime, server_default=func.now())
+#     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())

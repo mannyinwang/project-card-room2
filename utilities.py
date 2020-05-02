@@ -1,7 +1,7 @@
 from flask import flash
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_
 from random import seed, randint, shuffle
-from models import User, Game, Player, Message, Card, GameType, Play
+from models import User, Game, Player, Message, Card, GameType, GameRound
 
 starting_balance = 10000
 
@@ -163,6 +163,9 @@ def startGame(game_id):
     game = getGame(game_id)
     game.game_status = 1 # 0 = waiting, 1 = playing, 2 = completed
     game.current_turn = 1
+    game.starting_turn = 1
+    game.betting = 0
+    game.round_num = 0
     db.session.commit()
     # ante up players and set players' turns (i.e. positions at table) and result=1
     players = getPlayers(game_id)
@@ -176,6 +179,7 @@ def startGame(game_id):
         player.result = 1
         player.turn = turns[i]
         i += 1
+    game.current_bet = game.game_type.ante
     db.session.commit()
     # create card deck
     for number in range(2,15): # 2-10 numbers, 11 = Jack, 12 = Queen, 13 = King, 14 = Ace
@@ -205,11 +209,25 @@ def dealCard(game_id, user_id, face_up):
     else: # no cards left in deck
         return False
 
-def dealRound(game_id, face_up):
+def getNumRounds(game_id):
+    # returns number of rounds cards are dealt in the game
+    game = Game.query.get(game_id)
+    num_rounds = GameRound.query.filter_by(game_type_id=game.game_type_id).count()
+    return num_rounds
+
+def dealRound(game_id):
+    # returns True if betting after this round is dealt, False otherwise
     players = Player.query.filter_by(game_id=game_id, result=1)
+    game = Game.query.get(game_id)
+    game.round_num = game.round_num + 1
+    # game.betting = 1
+    db.session.commit()
+    game_round = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num).first()
     for player in players:
-        dealCard(game_id, player.player_id, face_up)
-    return
+        dealCard(game_id, player.player_id, game_round.face_up)
+    print("game_round.round_num = ", game_round.round_num)
+    print("game_round.betting = ", game_round.betting)
+    return game_round.betting
 
 def advanceTurn(game_id):
     game = getGame(game_id)
@@ -217,12 +235,19 @@ def advanceTurn(game_id):
     t = game.current_turn % game.num_players + 1
     found = False
     while found == False:
-        player_status = Player.query.filter_by(game_id=game_id, turn=t).first().result
-        if player_status == 1:
-            found = True
+        player = Player.query.filter_by(game_id=game_id, turn=t).first()
+        if player:
+            if player.result == 1:
+                found = True
+            else:
+                t = t % game.num_players + 1
         else:
-            t = t % game.num_players + 1
+            return
     game.current_turn = t
+    if t == game.starting_turn:
+        game.betting = 0
+    else:
+        game.betting = 1
     db.session.commit()
     return
 
@@ -234,6 +259,14 @@ def makeBet(user, game, amount):
     # add amount to players' total_bet
     player = Player.query.filter_by(game_id=game.id, player_id=user.id).first()
     player.total_bet = player.total_bet + amount
+    db.session.commit()
+    return
+
+def gameStartBettingRound(user, game_id):
+    player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
+    game = Game.query.get(game_id)
+    game.starting_turn = player.turn
+    game.betting = 1
     db.session.commit()
     return
 
@@ -258,10 +291,26 @@ def gameLeave(user):
     return False
 
 def gameCall(user, game_id):
-    dealCard(game_id, user.id, 1)
+    player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
+    game = Game.query.get(game_id)
+    bet = game.current_bet - player.total_bet
+    makeBet(user, game, bet)
+    advanceTurn(game_id)
     return False
 
 def gameRaise(user, game_id, raise_amount):
+    player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
+    game = Game.query.get(game_id)
+    max_raise = game.game_type.max_raise
+    if raise_amount > max_raise:
+        raise_amount = max_raise
+    elif raise_amount <= 0:
+        raise_amount = game.ante
+    makeBet(user, game, game.current_bet - player.total_bet + raise_amount)
+    game.current_bet = game.current_bet + raise_amount
+    game.starting_turn = player.turn
+    db.session.commit()
+    advanceTurn(game_id)
     return False
 
 def gameMessage(user, game_id, message_content):
@@ -279,10 +328,17 @@ def gameEnd(game_id):
     # if >1 remaining player, compare hands to determine the winner and losers
     if getNumActivePlayers(game_id) == 1:
         winner = Player.query.filter_by(game_id=game_id, result=1).first()
-        gameDeclareWinner(winner)
+        if winner:
+            gameDeclareWinner(winner)
         return
-    else:
-        pass
+    else:  # NEED TO FIX THIS TO DETERMINE BEST HAND
+        winner = Player.query.filter_by(game_id=game_id, result=1).first()
+        if winner:
+            gameDeclareWinner(winner)
+        players = Player.query.filter_by(game_id=game_id, result=1)
+        for player in players:
+            if player.id != winner.id:
+                gameDeclareLoser(player)
     return
 
 def gameDeclareWinner(player):

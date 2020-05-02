@@ -71,12 +71,12 @@
                     <table class="table table-fixed text-center table-hover">
                         <tr scope="row">
                             <th>User</th>
-                            <th>Balance</th>
+                            <th>Total Winnings</th>
                         </tr>
                     {% for bettor in bettors %}
                         <tr scope="row">
                             <td>{{bettor.user_name}}</td>
-                            <td>{{bettor.balance}}</td>
+                            <td>{{bettor.balance - starting_balance}}</td>
                         </tr>
                     {% endfor %}
                     </table>

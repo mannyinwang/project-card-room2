@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from utilities import *
 from flask_socketio import SocketIO
+import time
 
 
 def login_registration():
@@ -34,6 +35,8 @@ def lobby():
                 game = getGame(user.current_game_id)
                 if game.game_status == 1:
                     return redirect('/card-table')
+                elif game.game_status == 2:
+                    removePlayerFromGame(user, user.current_game_id)
             games = getActiveGames()
             game_types = getGameTypes()
             return render_template('lobby.html', user = user, games = games, game_types = game_types)
@@ -76,6 +79,7 @@ def lobby_new_game():
             num_players = addPlayerToGame(user, game_id)
             game = getGame(game_id)
             if num_players >= getGameMinPlayers(game):
+                print("starting game", game_id)
                 startGame(game_id)
                 socketio.emit(str(game_id) + ": card-table update") # notify other players
                 socketio.emit("lobby update") # notify others
@@ -95,12 +99,35 @@ def card_table():
             players = getPlayers(game_id)
             cards = getCards(game_id, user_id)
             user_turn = getUserTurn(game_id, user_id)
-            for player in players:
-                print('message:', player.messages)
-                if player.messages:
-                    print('message content:', player.messages[0].message)
             if game:
-                return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
+                if user_turn == game.current_turn:
+                    # check if round of betting is completed and if so, check if last round; if last round, end game, otherwise deal next round
+                    if not game.betting:  # betting round is completed
+                        betting_round = False
+                        num_rounds = getNumRounds(game_id)
+                        while not game.betting and not betting_round and game.round_num < num_rounds:
+                            print("dealing next round", game.betting, betting_round, game.round_num)
+                            betting_round = dealRound(game_id)  # deal a round of cards
+                            # time.sleep(5)
+                            socketio.emit(str(game_id) + ": card-table update") # notify other players
+                            print("done dealing round", game.betting, betting_round, game.round_num)
+                        if not game.betting and game.round_num >= num_rounds:  # done with game
+                            if game.game_status != 2:
+                                print("end of game")
+                                gameEnd(game_id)
+                                socketio.emit(str(game_id) + ": card-table update") # notify other players
+                            return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
+                        else: # start betting round
+                            print("starting betting round")
+                            socketio.emit(str(game_id) + ": card-table update") # notify other players
+                            gameStartBettingRound(user, game_id)
+                            return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
+                    else:  # continue betting round
+                        print("continuing betting round")
+                        return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
+                else:
+                    print("not this user's turn")
+                    return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)                 
             else:
                 return redirect('/lobby')
     return redirect('/login-registration')
@@ -135,7 +162,6 @@ def card_table_call(game_id):
         if user:
             if user.current_game_id == int(game_id):
                 gameCall(user, int(game_id))
-                advanceTurn(int(game_id))
                 socketio.emit(game_id + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
@@ -146,7 +172,7 @@ def card_table_raise():
         if user:
             game = getGame(request.form['game_id'])
             if game:
-                gameRaise(user, game, request.form['raise_amount'])
+                gameRaise(user, game.id, int(request.form['raise_amount']))
                 socketio.emit(str(game.id) + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
@@ -186,7 +212,7 @@ def leaderboard():
         user = getUser(session['user_id'])
     records = getTopWinLossRecords(10)
     bettors = getTopBettors(10)
-    return render_template('leaderboard.html', user = user, records = records, bettors = bettors)
+    return render_template('leaderboard.html', user = user, records = records, bettors = bettors, starting_balance=starting_balance)
 
 def logout_action():
     session.clear()
