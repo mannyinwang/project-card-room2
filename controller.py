@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from utilities import *
 from flask_socketio import SocketIO
-import time
 
 
 def login_registration():
@@ -105,15 +104,16 @@ def card_table():
                         num_rounds = getNumRounds(game_id)
                         while not game.betting and not betting_round and game.round_num < num_rounds:
                             betting_round = dealRound(game_id)  # deal a round of cards
-                            # time.sleep(5)
                             socketio.emit(str(game_id) + ": card-table update") # notify other players
                         if not game.betting and game.round_num >= num_rounds:  # done with game
                             if game.game_status != 2:
                                 gameEnd(game_id)
+                                socketio.emit("lobby update") # notify other players
+                                socketio.emit("leaderboard update")
                                 socketio.emit(str(game_id) + ": card-table update") # notify other players
                         else: # start betting round
-                            socketio.emit(str(game_id) + ": card-table update") # notify other players
                             gameStartBettingRound(user, game_id)
+                            socketio.emit(str(game_id) + ": card-table update") # notify other players
                 gameInfo = getGameInfo(user, game)
                 return render_template('card-table.html', user = gameInfo['user'], game = gameInfo['game'], players = gameInfo['players'], cards = gameInfo['cards'])                 
             else:
@@ -160,8 +160,10 @@ def card_table_raise():
         if user:
             game = getGame(request.form['game_id'])
             if game:
-                gameRaise(user, game.id, int(request.form['raise_amount']))
-                socketio.emit(str(game.id) + ": card-table update") # notify other players
+                raise_amount = request.form['raise_amount']
+                if raise_amount:
+                    gameRaise(user, game.id, int(raise_amount))
+                    socketio.emit(str(game.id) + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 

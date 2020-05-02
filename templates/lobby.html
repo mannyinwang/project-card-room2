@@ -52,7 +52,7 @@
                 <tr>
                     {% for game in games %}
                         </tr>
-                            <td>{{game.game_name}}</td>
+                            <td>{{game.game_type.game_name}}</td>
                             <td>{{game.game_type.ante}}</td>
                             <td>{{game.game_type.max_raise}}</td>
                             <td>{{game.pot}}</td>

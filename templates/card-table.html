@@ -27,8 +27,8 @@
 
         <!-- Game info -->
         <div class="row pt-4">
-            <h4 class="row pb-2">Game Info</h4>
-            <p class="col-12">Game ID = {{game.id}}</p>
+            <!-- <h4 class="row pb-2">Game Info</h4> -->
+            <!-- <p class="col-12">Game ID = {{game.id}}</p> -->
             <p class="col-12">Game Name = {{game.game_name}}</p>
             <p class="col-12">Game Status = 
                 {% if game.game_status == 0 %}waiting
@@ -36,18 +36,18 @@
                 {% elif game.game_status == 2 %}completed
                 {% else: %}error
                 {% endif %}</p>
-            <p class="col-12">Round = {{game.round_num}}</p>
+            <!-- <p class="col-12">Round = {{game.round_num}}</p> -->
             <p class="col-12">Pot = {{game.pot}}</p>
             <p class="col-12">Max Raise = {{game.max_raise}}</p>
             <!-- <p class="col-12">Time Limit = {{game.time_limit}}</h6> -->
             <!-- <p class="col-12">Number of Players = {{game.num_players}}</h6> -->
-            <p class="col-12">Current Turn = {{game.current_turn}}</h6>
-            <p class="col-12">User Turn = {{user.turn}}</h6>
+            <!-- <p class="col-12">Current Turn = {{game.current_turn}}</h6> -->
+            <!-- <p class="col-12">User Turn = {{user.turn}}</h6> -->
         </div>
 
         <!-- Players info -->
         <div class="row pt-5">
-            <h4 class="col-12 pb-2">Players</h4>
+            <!-- <h4 class="col-12 pb-2">Players</h4> -->
             <table class="table table-fixed text-left table-hover">
                 <tbody>
                     <tr scope='row'>
@@ -80,8 +80,7 @@
                                         {% elif card.suit == 3 %}{{card.number}}H
                                         {% else %}{{card.number}}S
                                         {% endif %}
-                                         |
-                                    {% else %} down |
+                                    {% else %} down
                                     {% endif %}
                                 {% endfor %}
                             </td>
@@ -102,11 +101,11 @@
                 {% if not card.face_up %} 
                     face-down
                 {% endif %}
-                {% if card.suit == 1 %}{{card.number}}C
-                {% elif card.suit == 2 %}{{card.number}}D
-                {% elif card.suit == 3 %}{{card.number}}H
-                {% else %}{{card.number}}S
-                {% endif %}|
+                {% if card.suit == 1 %}{{card.number}}C,
+                {% elif card.suit == 2 %}{{card.number}}D,
+                {% elif card.suit == 3 %}{{card.number}}H,
+                {% else %}{{card.number}}S,
+                {% endif %}
             {% endfor %}
             </p>
         </div>

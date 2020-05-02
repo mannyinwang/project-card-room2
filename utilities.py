@@ -117,6 +117,7 @@ def getGameInfo(user, game):
             playerInfo['message'] = message.message
         gameInfo['players'].append(playerInfo)
     gameInfo['cards'] = []
+    cards = Card.query.filter_by(player_id=user.id, game_id=game.id).order_by(Card.updated_at)
     for card in cards:
         cardInfo = {}
         cardInfo['number'] = card.number
@@ -359,7 +360,7 @@ def gameRaise(user, game_id, raise_amount):
     if raise_amount > max_raise:
         raise_amount = max_raise
     elif raise_amount <= 0:
-        raise_amount = game.ante
+        raise_amount = game.game_type.ante
     makeBet(user, game, game.current_bet - player.total_bet + raise_amount)
     game.current_bet = game.current_bet + raise_amount
     game.starting_turn = player.turn
