@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script></head>    
     <script type="text/javascript">
         var socket = io.connect('http://' + document.domain + ':' + location.port);
-        socket.on("card-table update", function() {
+        socket.on({{game.id | string}} + ': card-table update', function() {
           location.reload();
         })
       </script>
@@ -85,7 +85,11 @@
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>{% if player.messages %}{{player.messages[-1].message}}{% endif %}</td>
+                            <td>{% if player.messages %}
+                                    {% if player.messages[-1].game_id == game.id %}
+                                        {{player.messages[-1].message}}
+                                    {% endif %}
+                                {% endif %}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

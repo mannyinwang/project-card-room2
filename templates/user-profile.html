@@ -44,11 +44,23 @@
             <div class="col-1"></div>
             <p class="col-2">{{user.balance}}</p>
         </div>
-        <!-- <div class="row no-gutters mb-2 align-items-left"> 
-            <p class="col-2">Win-loss record: </p>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">Wins: </p>
             <div class="col-1"></div>
-            <p class="col-2">{{user.wins}}/{{user.losses}}</p>
-        </div> -->
+            <p class="col-2">{{user.wins}}</p>
+        </div>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">Losses: </p>
+            <div class="col-1"></div>
+            <p class="col-2">{{user.losses}}</p>
+        </div>
+        <div class="row mb-2 align-items-left"> 
+            <p class="col-2">Record: </p>
+            <div class="col-1"></div>
+            {% if user.wins or user.losses %}
+            <p class="col-2">{{'%0.2f'| format(user.wins/(user.wins+user.losses))}}</p>
+            {% endif %}
+        </div>
         
     </div>
 </body>

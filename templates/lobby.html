@@ -57,7 +57,7 @@
                             <td>{{game.game_type.max_raise}}</td>
                             <td>{{game.pot}}</td>
                             <td>{{game.num_players}} / {{game.game_type.min_players}} min - {{game.game_type.max_players}} max</td>
-                            {% if game.game_status == 0 %} <!-- game is waiting for players to join -->
+                            {% if game.game_status == 0 or game.game_status == 1 %} <!-- game is waiting for players to join or playing -->
                                 <td>Waiting</td>
                                 {% if user.current_game_id == game.id %}
                                 <td><a href="/lobby/leave-game/{{game.id}}" class="button btn-sm btn-primary">Leave</a></td>

@@ -48,7 +48,7 @@ def lobby_join_game(game_id):
             if num_players:
                 if num_players >= getGameMinPlayers(game):
                     startGame(int(game_id))
-                    socketio.emit("card-table update") # notify other players
+                    socketio.emit(game_id + ": card-table update") # notify other players
                     socketio.emit("lobby update") # notify others
                     return redirect('/card-table')
                 else:
@@ -77,7 +77,7 @@ def lobby_new_game():
             game = getGame(game_id)
             if num_players >= getGameMinPlayers(game):
                 startGame(game_id)
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(str(game_id) + ": card-table update") # notify other players
                 socketio.emit("lobby update") # notify others
                 return redirect('/card-table')
             else:
@@ -112,7 +112,8 @@ def card_table_fold(game_id):
             game = getGame(int(game_id))
             if game:
                 gameFold(user, game_id)
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(game_id + ": card-table update") # notify other players
+                socketio.emit("leaderboard update")
     return redirect('/card-table')
 
 def card_table_leave(game_id):
@@ -123,8 +124,9 @@ def card_table_leave(game_id):
             if game:
                 if game.game_status ==1:
                     gameFold(user, game_id)
+                    socketio.emit("leaderboard update")
                 gameLeave(user)
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(game_id + ": card-table update") # notify other players
     return redirect('/lobby')
 
 def card_table_call(game_id):
@@ -134,7 +136,7 @@ def card_table_call(game_id):
             if user.current_game_id == int(game_id):
                 gameCall(user, int(game_id))
                 advanceTurn(int(game_id))
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(game_id + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -145,7 +147,7 @@ def card_table_raise():
             game = getGame(request.form['game_id'])
             if game:
                 gameRaise(user, game, request.form['raise_amount'])
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(str(game.id) + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -156,7 +158,7 @@ def card_table_message():
             game = getGame(request.form['game_id'])
             if game:
                 gameMessage(user, game.id, request.form['message'])
-                socketio.emit("card-table update") # notify other players
+                socketio.emit(str(game.id) + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -168,13 +170,14 @@ def card_table_new_game(game_id):
             if game:
                 if game.num_players >= getGameMinPlayers(game):
                     gameStartNewGame(int(game_id))
-                    socketio.emit("card-table update") # notify other players
+                    socketio.emit(game_id + ": card-table update") # notify other players
                     return redirect('/card-table')
                 else:
                     gameLeave(user)
                     new_game_id = createNewGame(game.game_type_id)
                     num_players = addPlayerToGame(user, new_game_id)
-                    socketio.emit("card-table update") # notify other players
+                    socketio.emit(game_id + ": card-table update") # notify other players
+                    socketio.emit("lobby update") # notify other players
                     return redirect('/lobby')
     return redirect('/lobby')
 

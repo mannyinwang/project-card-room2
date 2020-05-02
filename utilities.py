@@ -1,6 +1,5 @@
 from flask import flash
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_
-from flask_socketio import SocketIO
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, Play
 
@@ -332,7 +331,8 @@ def gameStartNewGame(game_id):
     return
 
 def getTopWinLossRecords(num_of_players):
-    return False
+    topWLRecords = User.query.order_by(User.wins / (User.losses + User.wins).desc()).limit(10)
+    return topWLRecords
 
 def getTopBettors(num_of_players):
     topBettors = User.query.order_by(User.balance.desc()).limit(10)
