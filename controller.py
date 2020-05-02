@@ -81,6 +81,7 @@ def lobby_new_game():
                 socketio.emit("lobby update") # notify others
                 return redirect('/card-table')
             else:
+                socketio.emit("lobby update") # notify others
                 return redirect('/lobby')
     return redirect('/login-registration')
 
@@ -94,11 +95,12 @@ def card_table():
             players = getPlayers(game_id)
             cards = getCards(game_id, user_id)
             user_turn = getUserTurn(game_id, user_id)
-            messages = []
             for player in players:
-                messages.append(getMessages(game_id, player.player_id))
+                print('message:', player.messages)
+                if player.messages:
+                    print('message content:', player.messages[0].message)
             if game:
-                return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards, messages = messages)
+                return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
             else:
                 return redirect('/lobby')
     return redirect('/login-registration')
@@ -153,7 +155,7 @@ def card_table_message():
         if user:
             game = getGame(request.form['game_id'])
             if game:
-                gameMessage(user, game, request.form['message'])
+                gameMessage(user, game.id, request.form['message'])
                 socketio.emit("card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')

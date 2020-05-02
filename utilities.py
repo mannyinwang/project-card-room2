@@ -92,7 +92,7 @@ def getCards(game_id, player_id):
     return cards
 
 def getMessages(game_id, player_id):
-    result = Message.query.filter_by(game_id=game_id, user_id=player_id).order_by(Message.created_at.desc()).first()
+    result = Message.query.filter_by(game_id=game_id, player_id=player_id).order_by(Message.created_at.desc()).first()
     if result: 
         return result.message
     else:
@@ -265,8 +265,11 @@ def gameCall(user, game_id):
 def gameRaise(user, game_id, raise_amount):
     return False
 
-def gameMessage(user, game_id, message):
-    return False
+def gameMessage(user, game_id, message_content):
+    new_message = Message(message=message_content, player_id=user.id, game_id=game_id)
+    db.session.add(new_message)
+    db.session.commit()
+    return new_message
 
 def gameEnd(game_id):
     # change game_status to 2 = completed
@@ -332,4 +335,5 @@ def getTopWinLossRecords(num_of_players):
     return False
 
 def getTopBettors(num_of_players):
-    return False
+    topBettors = User.query.order_by(User.balance.desc()).limit(10)
+    return topBettors

@@ -72,18 +72,20 @@
                             </td>
                             <td>
                                 {% for card in player.cards %}
-                                    {{card.number}}
-                                    {% if card.suit == 1 %}C
-                                    {% elif card.suit == 2 %}D
-                                    {% elif card.suit == 3 %}H
-                                    {% else %}S
-                                    {% endif %}
-                                    {% if card.face_up %} face-up |
-                                    {% else %} down |
+                                    {% if card.game_id == game.id %}
+                                        {{card.number}}
+                                        {% if card.suit == 1 %}C
+                                        {% elif card.suit == 2 %}D
+                                        {% elif card.suit == 3 %}H
+                                        {% else %}S
+                                        {% endif %}
+                                        {% if card.face_up %} face-up |
+                                        {% else %} down |
+                                        {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td></td>
+                            <td>{% if player.messages %}{{player.messages[-1].message}}{% endif %}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -93,7 +95,7 @@
         <!-- User's cards -->
         <div class="row pt-5">
             <h4 class="col-12 pb-3">Player Cards</h4>
-            <p>| 
+            <p>
             {% for card in cards %}
                 {{card.number}}
                 {% if card.suit == 1 %}C
@@ -136,6 +138,7 @@
             {% endif %}
             <form class="col-4" action="/card-table/message" method="post">
                 <input type="text" name="message" placeholder="Message" class="rounded-0">
+                <input type="hidden" name="game_id" value={{game.id}}>
                 <button type="submit" class="col-3 btn btn-dark btn-sm">Chat</button>
             </form>
             <div class="col-2 pt-5">

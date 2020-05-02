@@ -18,7 +18,7 @@ class User(db.Model):
 class Game(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=False) 
+    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True) 
     game_type = db.relationship("GameType", foreign_keys=[game_type_id], backref="gametype_games")
     game_status = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: completed
     pot = db.Column(db.Integer)
@@ -45,11 +45,12 @@ class Player(db.Model):
     total_bet = db.Column(db.Integer)
     result = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: win, 3: loss, 4: exited before playing
     turn = db.Column(db.Integer)  # position of player at the table
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_players")
-    player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     player = db.relationship("User", foreign_keys=[player_id], backref="user_players")
     cards = db.relationship("Card", back_populates="player")
+    messages = db.relationship("Message", back_populates="player")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -57,8 +58,8 @@ class Message(db.Model):
     __tablename__ = "messages"
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(255))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    user = db.relationship("User", foreign_keys=[user_id], backref="user_messages")
+    player_id = db.Column(db.Integer, db.ForeignKey("players.player_id"), nullable=True)
+    player = db.relationship("Player", foreign_keys=[player_id], back_populates="messages")
     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)  # is null if not in a game while sending message
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_messages")
     created_at = db.Column(db.DateTime, server_default=func.now())
@@ -70,7 +71,7 @@ class Card(db.Model):
     number = db.Column(db.Integer)  # 2-10: 2-10, 11: jack, 12: queen, 13: king, 14: ace
     suit = db.Column(db.Integer)  # 1: clubs, 2: diamonds, 3: hearts, 4: spades
     face_up = db.Column(db.Boolean, unique=False, default=False)  # false: card is face down, true: card is face up
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_cards")
     player_id = db.Column(db.Integer, db.ForeignKey("players.player_id"), nullable=True)
     player = db.relationship("Player", back_populates="cards")
@@ -86,7 +87,7 @@ class Play(db.Model):
     amount = db.Column(db.Integer) # amount of bet if a raise or double
     card_id = db.Column(db.Integer, db.ForeignKey("cards.id"), nullable=True)
     card = db.relationship("Card", foreign_keys=[card_id], backref="card_plays")
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_plays")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
