@@ -29,7 +29,7 @@
         <div class="row pt-4">
             <h4 class="row pb-2">Game Info</h4>
             <p class="col-12">Game ID = {{game.id}}</p>
-            <p class="col-12">Game Name = {{game.game_type.game_name}}</p>
+            <p class="col-12">Game Name = {{game.game_name}}</p>
             <p class="col-12">Game Status = 
                 {% if game.game_status == 0 %}waiting
                 {% elif game.game_status == 1 %}playing
@@ -38,10 +38,11 @@
                 {% endif %}</p>
             <p class="col-12">Round = {{game.round_num}}</p>
             <p class="col-12">Pot = {{game.pot}}</p>
-            <p class="col-12">Max Raise = {{game.game_type.max_raise}}</p>
-            <!-- <p class="col-12">Time Limit = {{game.game_type.time_limit}}</h6> -->
+            <p class="col-12">Max Raise = {{game.max_raise}}</p>
+            <!-- <p class="col-12">Time Limit = {{game.time_limit}}</h6> -->
             <!-- <p class="col-12">Number of Players = {{game.num_players}}</h6> -->
             <p class="col-12">Current Turn = {{game.current_turn}}</h6>
+            <p class="col-12">User Turn = {{user.turn}}</h6>
         </div>
 
         <!-- Players info -->
@@ -60,8 +61,8 @@
                     </tr>
                     {% for player in players %}
                         <tr scope='row'>
-                            <td>{{player.player.user_name}}</td>
-                            <td>{{player.player.balance}}</td>
+                            <td>{{player.user_name}}</td>
+                            <td>{{player.balance}}</td>
                             <td>{{player.total_bet}}</td>
                             <td>{{player.turn}}</td>
                             <td>
@@ -73,23 +74,19 @@
                             </td>
                             <td>
                                 {% for card in player.cards %}
-                                    {% if card.game_id == game.id %}
-                                        {{card.number}}
-                                        {% if card.suit == 1 %}C
-                                        {% elif card.suit == 2 %}D
-                                        {% elif card.suit == 3 %}H
-                                        {% else %}S
+                                    {% if card.face_up %}
+                                        {% if card.suit == 1 %}{{card.number}}C
+                                        {% elif card.suit == 2 %}{{card.number}}D
+                                        {% elif card.suit == 3 %}{{card.number}}H
+                                        {% else %}{{card.number}}S
                                         {% endif %}
-                                        {% if card.face_up %} face-up |
-                                        {% else %} down |
-                                        {% endif %}
+                                         |
+                                    {% else %} down |
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>{% if player.messages %}
-                                    {% if player.messages[-1].game_id == game.id %}
-                                        {{player.messages[-1].message}}
-                                    {% endif %}
+                            <td>{% if player.message %}
+                                    {{player.message}}
                                 {% endif %}</td>
                         </tr>
                     {% endfor %}
@@ -102,15 +99,14 @@
             <h4 class="col-12 pb-3">Player Cards</h4>
             <p>
             {% for card in cards %}
-                {{card.number}}
-                {% if card.suit == 1 %}C
-                {% elif card.suit == 2 %}D
-                {% elif card.suit == 3 %}H
-                {% else %}S
+                {% if not card.face_up %} 
+                    face-down
                 {% endif %}
-                {% if card.face_up %} face-up |
-                {% else %} down |
-                {% endif %}
+                {% if card.suit == 1 %}{{card.number}}C
+                {% elif card.suit == 2 %}{{card.number}}D
+                {% elif card.suit == 3 %}{{card.number}}H
+                {% else %}{{card.number}}S
+                {% endif %}|
             {% endfor %}
             </p>
         </div>
@@ -118,7 +114,7 @@
         <!-- Game play actions -->
         <div class="row pt-5">
             <h4 class="col-12 pb-3">Player Actions</h4>
-            {% if user_turn == game.current_turn and game.game_status == 1 %}
+            {% if user.turn == game.current_turn and game.game_status == 1 %}
                 <div class="col-2">
                     <a href="/card-table/fold/{{game.id}}" class="btn btn-dark btn-sm btn-block">Fold</a>
                 </div>

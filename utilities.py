@@ -2,6 +2,7 @@ from flask import flash
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
+from datetime import datetime
 
 starting_balance = 10000
 
@@ -72,6 +73,58 @@ def getGameIDFromUserID(user_id):
         return game.id
     else:
         return False
+
+def getGameInfo(user, game):
+    players = getPlayers(game.id)
+    cards = getCards(game.id, user.id)
+    gameInfo = {}
+    gameInfo['user'] = {}
+    gameInfo['user']['user_name'] = user.user_name
+    gameInfo['user']['turn'] = getUserTurn(game.id, user.id)
+    gameInfo['game'] = {}
+    gameInfo['game']['id'] = game.id
+    gameInfo['game']['game_name'] = game.game_type.game_name
+    gameInfo['game']['game_status'] = game.game_status
+    gameInfo['game']['ante'] = game.game_type.ante
+    gameInfo['game']['round_num'] = game.round_num
+    gameInfo['game']['pot'] = game.pot
+    gameInfo['game']['current_turn'] = game.current_turn
+    gameInfo['game']['max_raise'] = game.game_type.max_raise
+    gameInfo['game']['time_limit'] = game.game_type.time_limit
+    gameInfo['game']['num_players'] = getNumPlayers(game.id)
+    gameInfo['players'] = []
+    for player in players:
+        playerInfo = {}
+        playerInfo['user_name'] = player.player.user_name
+        playerInfo['balance'] = player.player.balance
+        playerInfo['total_bet'] = player.total_bet
+        playerInfo['turn'] = player.turn
+        playerInfo['result'] = player.result
+        playerInfo['cards'] = []
+        cards = Card.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Card.updated_at)
+        for card in cards:
+            cardInfo = {}   
+            cardInfo['face_up'] = card.face_up
+            if card.face_up:
+                cardInfo['number'] = card.number
+                cardInfo['suit'] = card.suit
+            else:
+                cardInfo['number'] = 0
+                cardInfo['suit'] = 0
+            playerInfo['cards'].append(cardInfo)
+        message = Message.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Message.created_at.desc()).first()
+        if message:
+            playerInfo['message'] = message.message
+        gameInfo['players'].append(playerInfo)
+    gameInfo['cards'] = []
+    for card in cards:
+        cardInfo = {}
+        cardInfo['number'] = card.number
+        cardInfo['suit'] = card.suit
+        cardInfo['face_up'] = card.face_up
+        gameInfo['cards'].append(cardInfo)
+
+    return gameInfo
 
 def getGame(game_id):
     # get game info for game_id
@@ -204,6 +257,7 @@ def dealCard(game_id, user_id, face_up):
         # deal card to user
         card.player_id = user_id
         card.face_up = face_up
+        card.updated_at = datetime.now()
         db.session.commit()
         return True
     else: # no cards left in deck

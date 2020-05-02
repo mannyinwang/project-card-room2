@@ -96,8 +96,6 @@ def card_table():
         if user:
             game_id = getGameIDFromUserID(user_id)
             game = getGame(game_id)
-            players = getPlayers(game_id)
-            cards = getCards(game_id, user_id)
             user_turn = getUserTurn(game_id, user_id)
             if game:
                 if user_turn == game.current_turn:
@@ -106,28 +104,18 @@ def card_table():
                         betting_round = False
                         num_rounds = getNumRounds(game_id)
                         while not game.betting and not betting_round and game.round_num < num_rounds:
-                            print("dealing next round", game.betting, betting_round, game.round_num)
                             betting_round = dealRound(game_id)  # deal a round of cards
                             # time.sleep(5)
                             socketio.emit(str(game_id) + ": card-table update") # notify other players
-                            print("done dealing round", game.betting, betting_round, game.round_num)
                         if not game.betting and game.round_num >= num_rounds:  # done with game
                             if game.game_status != 2:
-                                print("end of game")
                                 gameEnd(game_id)
                                 socketio.emit(str(game_id) + ": card-table update") # notify other players
-                            return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
                         else: # start betting round
-                            print("starting betting round")
                             socketio.emit(str(game_id) + ": card-table update") # notify other players
                             gameStartBettingRound(user, game_id)
-                            return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
-                    else:  # continue betting round
-                        print("continuing betting round")
-                        return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)
-                else:
-                    print("not this user's turn")
-                    return render_template('card-table.html', user = user, user_turn = user_turn, game = game, players = players, cards = cards)                 
+                gameInfo = getGameInfo(user, game)
+                return render_template('card-table.html', user = gameInfo['user'], game = gameInfo['game'], players = gameInfo['players'], cards = gameInfo['cards'])                 
             else:
                 return redirect('/lobby')
     return redirect('/login-registration')
