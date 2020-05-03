@@ -18,6 +18,7 @@ migrate = Migrate(app, db)
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$') 
 PWD_REGEX = re.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!*#?&])[A-Za-z\d@$!#*?&]{6,20}$")
 app.secret_key = "bbbafdskiezxfjopterwggggfdsafdsafsdawiofxxgf"
-bcrypt = Bcrypt(app)    # we are creating an object called bcrypt, 
-                        # which is made by invoking the function Bcrypt with our app as an argument
+# we are creating an object called bcrypt,
+# which is made by invoking the function Bcrypt with our app as an argume
+bcrypt = Bcrypt(app)  
 socketio = SocketIO(app)
