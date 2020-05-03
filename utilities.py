@@ -1,5 +1,5 @@
 from flask import flash
-from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_
+from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_, func
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
 from datetime import datetime
@@ -26,7 +26,7 @@ def addUser(user_name, email, password, confirm):
         else:
             # add new member
             new_user = User(user_name=user_name, email=email, password=bcrypt.generate_password_hash(password),
-                            balance=starting_balance, wins=0, losses=0, current_game_id=None)
+                            balance=starting_balance, current_game_id=None)
             db.session.add(new_user)
             db.session.commit()
             flash("New user added.")
@@ -139,6 +139,24 @@ def getGameInfo(user, game):
     return gameInfo
 
 
+def getUserProfile(user):
+    info = {}
+    info['user_name'] = user.user_name
+    info['email'] = user.email
+    info['balance'] = user.balance
+    result = Player.query.join(User).with_entities(func.count(Player.result).label('wins')).filter(Player.result==2, Player.player_id==user.id).first()
+    if result:
+        info['wins'] = result.wins
+    else:
+        info['wins'] = 0
+    result = Player.query.join(User).with_entities(func.count(Player.result).label('losses')).filter(Player.result==3, User.id==user.id).group_by(User.id).first()
+    if result:
+        info['losses'] = result.losses
+    else:
+        info['losses'] = 0
+    return info
+
+
 def getGame(game_id):
     # get game info for game_id
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form a dictionary
@@ -177,6 +195,7 @@ def createNewGame(game_type_id):
 
 def getNumPlayers(game_id):
     num_players = Game.query.get(game_id).num_players
+    # num_players = Player.query.filter_by(game_id=game_id).count()
     return num_players
 
 
@@ -357,10 +376,9 @@ def gameStartBettingRound(user, game_id):
 
 
 def gameFold(user, game_id):
-    # set player.result = 3 for loss and user.losses += 1
+    # set player.result = 3 for loss
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     player.result = 3  # set to loss
-    user.losses = user.losses + 1
     db.session.commit()
     # check if more than one player active; if so, advance turn; if not, remaining player is winner
     num_active_players = getNumActivePlayers(game_id)
@@ -373,7 +391,9 @@ def gameFold(user, game_id):
 
 def gameLeave(user):
     player = Player.query.filter_by(game_id=user.current_game_id, player_id=user.id).first()
-    player.result = 4
+    game = getGame(user.current_game_id)
+    # if game.game_status != 1:
+    #     player.result = 4
     addToNumPlayers(user.current_game_id, -1)
     user.current_game_id = None
     db.session.commit()
@@ -452,7 +472,6 @@ def gameDeclareWinner(player):
     game = Game.query.get(player.game_id)
     user.balance = user.balance + game.pot
     game.pot = 0
-    user.wins = user.wins + 1
     db.session.commit()
     return
 
@@ -460,7 +479,6 @@ def gameDeclareWinner(player):
 def gameDeclareLoser(player):
     player.result = 3
     user = User.query.get(player.player_id)
-    user.losses = user.losses + 1
     db.session.commit()
     return
 
@@ -484,8 +502,23 @@ def scoreCard(card):
     return score
 
 def getTopWinLossRecords(num_of_players):
-    topWLRecords = User.query.order_by((User.wins / (User.losses + User.wins)).desc()).limit(10)
-    return topWLRecords
+    results = Player.query.join(User).with_entities( \
+        User.user_name.label('user_name'), \
+        func.count(Player.result).filter(Player.result==2).label('wins'), \
+        func.count(Player.result).filter(Player.result==3).label('losses') \
+        ).filter(or_(Player.result==2,Player.result==3)).group_by(User.user_name) \
+        .order_by((1.0*func.count(Player.result).filter(Player.result==2)/ \
+        (func.count(Player.result).filter(Player.result==3)+
+         func.count(Player.result).filter(Player.result==2))).desc()
+        ).limit(10).all()
+    records = []
+    for result in results:
+        entry = {}
+        entry['user_name'] = result.user_name
+        entry['wins'] = result.wins
+        entry['losses'] = result.losses
+        records.append(entry)
+    return records
 
 
 def getTopBettors(num_of_players):
@@ -494,5 +527,4 @@ def getTopBettors(num_of_players):
 
 def rules():
     print('Welcome')
-    print("This is crazy")
 
