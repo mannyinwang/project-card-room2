@@ -494,4 +494,5 @@ def getTopBettors(num_of_players):
 
 def rules():
     print('Welcome')
+    print("This is crazy")
 
