@@ -23,7 +23,8 @@ def user_profile():
     if 'user_id' in session:
         user = getUser(session['user_id'])
         if user:
-            return render_template('user-profile.html', user = user)
+            user_info = getUserProfile(user)
+            return render_template('user-profile.html', user = user_info)
     return redirect('/login-registration')
 
 def lobby():
