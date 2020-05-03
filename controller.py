@@ -49,7 +49,8 @@ def lobby_join_game(game_id):
             num_players = addPlayerToGame(user, int(game_id))
             if num_players:
                 if num_players >= getGameMinPlayers(game):
-                    startGame(int(game_id))
+                    if game.game_status == 0: # not already playing
+                        startGame(int(game_id))
                     socketio.emit(game_id + ": card-table update") # notify other players
                     socketio.emit("lobby update") # notify others
                     return redirect('/card-table')

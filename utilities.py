@@ -340,6 +340,8 @@ def gameFold(user, game_id):
     return
 
 def gameLeave(user):
+    player = Player.query.filter_by(game_id=user.current_game_id, player_id=user.id).first()
+    player.result = 4
     addToNumPlayers(user.current_game_id, -1)
     user.current_game_id = None
     db.session.commit()
@@ -442,7 +444,7 @@ def gameStartNewGame(game_id):
     return
 
 def getTopWinLossRecords(num_of_players):
-    topWLRecords = User.query.order_by(User.wins / (User.losses + User.wins).desc()).limit(10)
+    topWLRecords = User.query.order_by((User.wins / (User.losses + User.wins)).desc()).limit(10)
     return topWLRecords
 
 def getTopBettors(num_of_players):
