@@ -376,6 +376,18 @@ def gameMessage(user, game_id, message_content):
     db.session.commit()
     return new_message
 
+def gameStartNewGame(game_id):
+    previous_game = Game.query.get(game_id)
+    players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
+    new_game_id = createNewGame(previous_game.game_type_id)
+    for player in players:
+        user = User.query.get(player.player_id)
+        user.current_game_id = None
+        db.session.commit()
+        addPlayerToGame(user, new_game_id)
+    startGame(new_game_id)
+    return
+
 def gameEnd(game_id):
     # change game_status to 2 = completed
     game = Game.query.get(game_id)
@@ -430,18 +442,6 @@ def scoreHand(cards):
 def scoreCard(card):
     score = 1+ card.number/10
     return score
-
-def gameStartNewGame(game_id):
-    previous_game = Game.query.get(game_id)
-    players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
-    new_game_id = createNewGame(previous_game.game_type_id)
-    for player in players:
-        user = User.query.get(player.player_id)
-        user.current_game_id = None
-        db.session.commit()
-        addPlayerToGame(user, new_game_id)
-    startGame(new_game_id)
-    return
 
 def getTopWinLossRecords(num_of_players):
     topWLRecords = User.query.order_by((User.wins / (User.losses + User.wins)).desc()).limit(10)
