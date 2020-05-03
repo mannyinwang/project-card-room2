@@ -22,7 +22,3 @@ app.secret_key = "bbbafdskiezxfjopterwggggfdsafdsafsdawiofxxgf"
 # which is made by invoking the function Bcrypt with our app as an argume
 bcrypt = Bcrypt(app)  
 socketio = SocketIO(app)
-
-
-
-print('welcome')
