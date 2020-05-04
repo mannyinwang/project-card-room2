@@ -2,7 +2,7 @@ from flask import flash
 from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_, func
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
-from datetime import datetime
+from datetime import datetime, timedelta
 
 starting_balance = 10000
 
@@ -64,7 +64,10 @@ def getActiveGames():
     # get game info for all active games, i.e. with game_status == 0 or 1
     # game_status: 0 if waiting, 1 if playing, 2 if completed
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
-    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1)).all()
+    # yesterday = datetime.now() - timedelta(days=0)
+    # active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1, Game.updated_at > yesterday)).all()
+    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1)).all() 
+    # print("datetime info:", int(Game.updated_at), int(datetime.now()))
     return active_games  # return game info
 
 
@@ -82,6 +85,38 @@ def getGameIDFromUserID(user_id):
         return game.id
     else:
         return False
+
+def getLobbyInfo(user):
+    lobbyInfo = {}
+    lobbyInfo['user'] = {}
+    lobbyInfo['user']['user_name'] = user.user_name
+    lobbyInfo['user']['current_game_id'] = user.current_game_id
+    lobbyInfo['games'] = []
+    games = getActiveGames()
+    for game in games:
+        gameInfo = {}
+        gameInfo['id'] = game.id
+        gameInfo['game_name'] = game.game_type.game_name
+        gameInfo['game_status'] = game.game_status
+        gameInfo['ante'] = game.game_type.ante
+        gameInfo['round_num'] = game.round_num
+        gameInfo['num_rounds'] = getNumRounds(game.id)
+        gameInfo['pot'] = game.pot
+        gameInfo['current_turn'] = game.current_turn
+        gameInfo['max_raise'] = game.game_type.max_raise
+        gameInfo['time_limit'] = game.game_type.time_limit
+        gameInfo['min_players'] = game.game_type.min_players
+        gameInfo['max_players'] = game.game_type.max_players
+        gameInfo['num_players'] = getNumNonExitedPlayers(game.id)
+        lobbyInfo['games'].append(gameInfo)
+    lobbyInfo['game_types'] = []
+    game_types = getGameTypes()
+    for game_type in game_types:
+        gameTypeInfo = {}
+        gameTypeInfo['id'] = game_type.id
+        gameTypeInfo['game_name'] = game_type.game_name
+        lobbyInfo['game_types'].append(gameTypeInfo)
+    return lobbyInfo
 
 
 def getGameInfo(user, game):
@@ -101,32 +136,33 @@ def getGameInfo(user, game):
     gameInfo['game']['current_turn'] = game.current_turn
     gameInfo['game']['max_raise'] = game.game_type.max_raise
     gameInfo['game']['time_limit'] = game.game_type.time_limit
-    gameInfo['game']['num_players'] = getNumPlayers(game.id)
+    gameInfo['game']['num_players'] = getNumActivePlayers(game.id)
     gameInfo['players'] = []
     for player in players:
-        playerInfo = {}
-        playerInfo['user_name'] = player.player.user_name
-        playerInfo['balance'] = player.player.balance
-        playerInfo['total_bet'] = player.total_bet
-        playerInfo['turn'] = player.turn
-        playerInfo['result'] = player.result
-        playerInfo['cards'] = []
-        cards = Card.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Card.updated_at)
-        for card in cards:
-            cardInfo = {}
-            cardInfo['face_up'] = card.face_up
-            if card.face_up:
-                cardInfo['number'] = card.number
-                cardInfo['suit'] = card.suit
-            else:
-                cardInfo['number'] = 0
-                cardInfo['suit'] = 0
-            playerInfo['cards'].append(cardInfo)
-        message = Message.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(
-            Message.created_at.desc()).first()
-        if message:
-            playerInfo['message'] = message.message
-        gameInfo['players'].append(playerInfo)
+        if player.result != 4:
+            playerInfo = {}
+            playerInfo['user_name'] = player.player.user_name
+            playerInfo['balance'] = player.player.balance
+            playerInfo['total_bet'] = player.total_bet
+            playerInfo['turn'] = player.turn
+            playerInfo['result'] = player.result
+            playerInfo['cards'] = []
+            cards = Card.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Card.updated_at)
+            for card in cards:
+                cardInfo = {}
+                cardInfo['face_up'] = card.face_up
+                if card.face_up:
+                    cardInfo['number'] = card.number
+                    cardInfo['suit'] = card.suit
+                else:
+                    cardInfo['number'] = 0
+                    cardInfo['suit'] = 0
+                playerInfo['cards'].append(cardInfo)
+            message = Message.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(
+                Message.created_at.desc()).first()
+            if message:
+                playerInfo['message'] = message.message
+            gameInfo['players'].append(playerInfo)
     gameInfo['cards'] = []
     cards = Card.query.filter_by(player_id=user.id, game_id=game.id).order_by(Card.updated_at)
     for card in cards:
@@ -135,7 +171,6 @@ def getGameInfo(user, game):
         cardInfo['suit'] = card.suit
         cardInfo['face_up'] = card.face_up
         gameInfo['cards'].append(cardInfo)
-
     return gameInfo
 
 
@@ -187,28 +222,31 @@ def getMessages(game_id, player_id):
 
 
 def createNewGame(game_type_id):
-    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, current_turn=0, num_players=0)
+    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, round_num = 0, current_bet = 0, starting_turn = 0, current_turn=0, num_players=0)
     db.session.add(new_game)
     db.session.commit()
     return new_game.id
 
 
-def getNumPlayers(game_id):
-    num_players = Game.query.get(game_id).num_players
-    # num_players = Player.query.filter_by(game_id=game_id).count()
+def getNumPlayers(game_id):  # all players
+    num_players = Player.query.filter_by(game_id=game_id).count()
+    return num_players
+
+
+def getNumNonExitedPlayers(game_id):  
+    num_players = User.query.filter_by(current_game_id=game_id).count()
+    # num_players = Player.query.filter(and_(Player.game_id==game_id, Player.result!=4), ).count()
+    return num_players
+
+
+def getNumWaitingOrActivePlayers(game_id):  # player.result = 0 or 1
+    num_players = Player.query.filter(Player.game_id==game_id, or_(Player.result==0, Player.result==1)).count()
     return num_players
 
 
 def getNumActivePlayers(game_id):
     num_active_players = Player.query.filter_by(game_id=game_id, result=1).count()
     return num_active_players
-
-
-def addToNumPlayers(game_id, adder):
-    num_players = getNumPlayers(game_id)
-    Game.query.get(game_id).num_players = num_players + adder
-    db.session.commit()
-    return num_players + adder
 
 
 def addPlayerToGame(user, game_id):
@@ -224,34 +262,36 @@ def addPlayerToGame(user, game_id):
             new_player = Player(result=0, total_bet=0, turn=0, game_id=game_id, player_id=user.id)
             db.session.add(new_player)
             db.session.commit()
-        # increment number of players in game by 1
-        num_players = addToNumPlayers(game_id, 1)
         # update users.current_game_id to game_id
         user.current_game_id = game_id
         db.session.commit()
-        return num_players
-    else:
-        return False  # cannot add user to game since already in a game
 
 
 def removePlayerFromGame(user, game_id):
     # if user not in a game, cannot remove
     if user.current_game_id != None:
-        # remove user to players for game_id
+        # remove user from players for game_id
         player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
-        if player:
-            player.result = 4  # set to 4 for exited before playing
+        game = getGame(game_id)
+        if player and game:
+            if game.game_status == 0:  # game waiting
+                player.result = 4 # set to exit without playing
+            elif game.game_status == 1:  # game playing
+                if player.result == 0:  # player is observer in playing game
+                    player.result = 4 # set to exit without playing
+                elif player.result == 1: # player was playing and exited
+                    player.result = 3 # set to loss
+                else: # player already lost/won
+                    pass
+            elif game.game_status == 2:  # game completed
+                if player.result == 0:  # player was observer only
+                    player.result = 4
+                else: # player already won/lost/exited
+                    pass
             db.session.commit()
-            # decrement number of players in game by 1
-            num_players = addToNumPlayers(game_id, -1)
-            # update users.current_game_id to 0
+            # update users.current_game_id to Null
             user.current_game_id = None
             db.session.commit()
-            return num_players
-        else:
-            return False
-    else:
-        return False  # cannot remove user from game since not in a game
 
 
 def startGame(game_id):
@@ -262,20 +302,27 @@ def startGame(game_id):
     game.starting_turn = 1
     game.betting = 0
     game.round_num = 0
+    game.updated_at = datetime.now()
     db.session.commit()
-    # ante up players and set players' turns (i.e. positions at table) and result=1
+    # move players into game, i.e. set player.result = 1
     players = getPlayers(game_id)
-    num_players = getNumPlayers(game_id)
+    for player in players:
+        if player.result != 4:
+            player.result = 1
+    db.session.commit()
+    # ante up players and set players' turns (i.e. positions at table)
+    num_players = getNumActivePlayers(game_id)
     turns = list(range(1, num_players + 1))
     shuffle(turns)
     i = 0
     for player in players:
         user = User.query.get(player.player_id)
         makeBet(user, game, game.game_type.ante)
-        player.result = 1
-        player.turn = turns[i]
-        i += 1
+        if player.result != 4:
+            player.turn = turns[i]
+            i += 1
     game.current_bet = game.game_type.ante
+    game.updated_at = datetime.now()
     db.session.commit()
     # create card deck
     for number in range(2, 15):  # 2-10 numbers, 11 = Jack, 12 = Queen, 13 = King, 14 = Ace
@@ -321,35 +368,38 @@ def dealRound(game_id):
     players = Player.query.filter_by(game_id=game_id, result=1)
     game = Game.query.get(game_id)
     game.round_num = game.round_num + 1
+    game.updated_at = datetime.now()
     # game.betting = 1
     db.session.commit()
     game_round = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num).first()
     for player in players:
         dealCard(game_id, player.player_id, game_round.face_up)
-    print("game_round.round_num = ", game_round.round_num)
-    print("game_round.betting = ", game_round.betting)
     return game_round.betting
 
 
 def advanceTurn(game_id):
     game = getGame(game_id)
     # find the next player who has not folded, i.e. has player.result = 1
-    t = game.current_turn % game.num_players + 1
+    num_total_players = getNumPlayers(game_id)  # include those that have exited but will skip over those
+    t = (game.current_turn % num_total_players) + 1
     found = False
-    while found == False:
+    while found == False:  # look for next active player
+        print("t=",t)
         player = Player.query.filter_by(game_id=game_id, turn=t).first()
         if player:
             if player.result == 1:
                 found = True
             else:
-                t = t % game.num_players + 1
+                t = (t % num_total_players) + 1
         else:
-            return
+            t = (t % num_total_players) + 1
+    print("previous turn = ", game.current_turn, "; new turn = ", t)
     game.current_turn = t
     if t == game.starting_turn:
-        game.betting = 0
+        game.betting = 0  # betting round is completed
     else:
         game.betting = 1
+    game.updated_at = datetime.now()
     db.session.commit()
     return
 
@@ -359,6 +409,7 @@ def makeBet(user, game, amount):
     user.balance = user.balance - amount
     # add amount to game's pot
     game.pot = game.pot + amount
+    game.updated_at = datetime.now()
     # add amount to players' total_bet
     player = Player.query.filter_by(game_id=game.id, player_id=user.id).first()
     player.total_bet = player.total_bet + amount
@@ -366,16 +417,26 @@ def makeBet(user, game, amount):
     return
 
 
+def isUserTurn(user,game):
+    player = Player.query.filter_by(game_id=game.id, player_id=user.id).first()
+    if player.turn == game.current_turn:
+        return True
+    else:
+        return False
+
+
 def gameStartBettingRound(user, game_id):
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     game = Game.query.get(game_id)
     game.starting_turn = player.turn
     game.betting = 1
+    game.updated_at = datetime.now()
     db.session.commit()
     return
 
 
 def gameFold(user, game_id):
+    print(user.user_name, ": FOLD")
     # set player.result = 3 for loss
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     player.result = 3  # set to loss
@@ -383,24 +444,44 @@ def gameFold(user, game_id):
     # check if more than one player active; if so, advance turn; if not, remaining player is winner
     num_active_players = getNumActivePlayers(game_id)
     if num_active_players > 1:
-        advanceTurn(game_id)
+        game = getGame(game_id)
+        if player.turn == game.current_turn:  # player is folding in turn so need move the turn
+            advanceTurn(game_id)
+        if player.turn == game.starting_turn:  # need to advance starting of betting turn to next player
+            game.starting_turn = game.current_turn
+            db.session.commit()
     else:
         gameEnd(game_id)
     return
 
 
 def gameLeave(user):
+    print(user.user_name, ": LEAVING GAME")
     player = Player.query.filter_by(game_id=user.current_game_id, player_id=user.id).first()
     game = getGame(user.current_game_id)
-    # if game.game_status != 1:
-    #     player.result = 4
-    addToNumPlayers(user.current_game_id, -1)
+    if game:
+        if game.game_status == 0:  # game waiting
+            player.result = 4 # set to exit without playing
+        elif game.game_status == 1:  # game playing
+            if player.result == 0:  # player is observer in playing game
+                player.result = 4 # set to exit without playing
+            elif player.result == 1: # player was playing and exited
+                player.result = 3 # set to loss
+            else: # player already lost/won
+                pass
+        elif game.game_status == 2:  # game completed
+            if player.result == 0 or player.result == 1:  # player was observer only
+                player.result = 4
+            else: # player already won/lost/exited
+                pass
+        db.session.commit()
     user.current_game_id = None
     db.session.commit()
     return False
 
 
 def gameCall(user, game_id):
+    print(user.user_name, ": CALL")
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     game = Game.query.get(game_id)
     bet = game.current_bet - player.total_bet
@@ -410,6 +491,7 @@ def gameCall(user, game_id):
 
 
 def gameRaise(user, game_id, raise_amount):
+    print(user.user_name, ": RAISE")
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     game = Game.query.get(game_id)
     max_raise = game.game_type.max_raise
@@ -420,6 +502,7 @@ def gameRaise(user, game_id, raise_amount):
     makeBet(user, game, game.current_bet - player.total_bet + raise_amount)
     game.current_bet = game.current_bet + raise_amount
     game.starting_turn = player.turn
+    game.updated_at = datetime.now()
     db.session.commit()
     advanceTurn(game_id)
     return False
@@ -431,22 +514,31 @@ def gameMessage(user, game_id, message_content):
     db.session.commit()
     return new_message
 
-def gameStartNewGame(game_id):
+def gameStartNewGame(user, game_id):
+    print(user.user_name, ": START NEW GAME")
     previous_game = Game.query.get(game_id)
     players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
     new_game_id = createNewGame(previous_game.game_type_id)
+    num_players = 0
     for player in players:
         user = User.query.get(player.player_id)
-        user.current_game_id = None
-        db.session.commit()
-        addPlayerToGame(user, new_game_id)
-    startGame(new_game_id)
-    return
+        if user.current_game_id:  # did not exit game
+            user.current_game_id = None
+            db.session.commit()
+            addPlayerToGame(user, new_game_id)
+            num_players += 1
+    game = getGame(new_game_id)
+    if num_players >= getGameMinPlayers(game):
+        startGame(new_game_id)
+        return True
+    else:
+        return False
 
 def gameEnd(game_id):
     # change game_status to 2 = completed
     game = Game.query.get(game_id)
     game.game_status = 2  # set game to be completed
+    game.updated_at = datetime.now()
     db.session.commit()
     # if 1 remaining player, that player is the winner
     # if >1 remaining player, compare hands to determine the winner and losers
@@ -472,6 +564,7 @@ def gameDeclareWinner(player):
     game = Game.query.get(player.game_id)
     user.balance = user.balance + game.pot
     game.pot = 0
+    game.updated_at = datetime.now()
     db.session.commit()
     return
 

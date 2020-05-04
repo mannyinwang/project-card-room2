@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from utilities import *
 from flask_socketio import SocketIO
-
+import time
 
 def login_registration():
     session['user_id']= None  # logout any user
@@ -31,15 +31,14 @@ def lobby():
     if 'user_id' in session:
         user = getUser(session['user_id'])
         if user:
-            if user.current_game_id:
+            if user.current_game_id:  # user is in a game
                 game = getGame(user.current_game_id)
-                if game.game_status == 1:
+                if game.game_status == 1:  # game is playing
                     return redirect('/card-table')
-                elif game.game_status == 2:
+                elif game.game_status == 2:  # game is completed
                     removePlayerFromGame(user, user.current_game_id)
-            games = getActiveGames()
-            game_types = getGameTypes()
-            return render_template('lobby.html', user = user, games = games, game_types = game_types)
+            lobbyInfo = getLobbyInfo(user)
+            return render_template('lobby.html', user = lobbyInfo['user'], games = lobbyInfo['games'], game_types = lobbyInfo['game_types'])
     return redirect('/login-registration')
 
 def lobby_join_game(game_id):
@@ -47,7 +46,8 @@ def lobby_join_game(game_id):
         user = getUser(session['user_id'])
         if user:
             game = getGame(int(game_id))
-            num_players = addPlayerToGame(user, int(game_id))
+            addPlayerToGame(user, int(game_id))
+            num_players = getNumNonExitedPlayers(int(game_id))
             if num_players:
                 if num_players >= getGameMinPlayers(game):
                     if game.game_status == 0: # not already playing
@@ -77,10 +77,10 @@ def lobby_new_game():
         user = getUser(session['user_id'])
         if user:
             game_id = createNewGame(request.form['game_type_id'])
-            num_players = addPlayerToGame(user, game_id)
+            addPlayerToGame(user, game_id)
+            num_players = getNumWaitingOrActivePlayers(int(game_id))
             game = getGame(game_id)
             if num_players >= getGameMinPlayers(game):
-                print("starting game", game_id)
                 startGame(game_id)
                 socketio.emit(str(game_id) + ": card-table update") # notify other players
                 socketio.emit("lobby update") # notify others
@@ -98,7 +98,7 @@ def card_table():
             game_id = getGameIDFromUserID(user_id)
             game = getGame(game_id)
             user_turn = getUserTurn(game_id, user_id)
-            if game:
+            if game and game.game_status != 0:
                 if user_turn == game.current_turn:
                     # check if round of betting is completed and if so, check if last round; if last round, end game, otherwise deal next round
                     if not game.betting:  # betting round is completed
@@ -106,7 +106,7 @@ def card_table():
                         num_rounds = getNumRounds(game_id)
                         while not game.betting and not betting_round and game.round_num < num_rounds:
                             betting_round = dealRound(game_id)  # deal a round of cards
-                            socketio.emit(str(game_id) + ": card-table update") # notify other players
+                            socketio.emit(str(game_id) + ": card-table update", broadcast=True) # notify other players
                         if not game.betting and game.round_num >= num_rounds:  # done with game
                             if game.game_status != 2:
                                 gameEnd(game_id)
@@ -128,10 +128,13 @@ def card_table_fold(game_id):
         if user:
             game = getGame(int(game_id))
             if game:
-                gameFold(user, game_id)
-                socketio.emit(game_id + ": card-table update") # notify other players
-                socketio.emit("leaderboard update")
-    return redirect('/card-table')
+                if user.current_game_id == int(game_id):
+                    if isUserTurn(user,game):
+                        gameFold(user, game_id)
+                        socketio.emit(game_id + ": card-table update") # notify other players
+                        socketio.emit("leaderboard update")
+                return redirect('/card-table')
+    return redirect('/lobby')
 
 def card_table_leave(game_id):
     if 'user_id' in session:
@@ -150,9 +153,12 @@ def card_table_call(game_id):
     if 'user_id' in session:
         user = getUser(session['user_id'])
         if user:
-            if user.current_game_id == int(game_id):
-                gameCall(user, int(game_id))
-                socketio.emit(game_id + ": card-table update") # notify other players
+            game = getGame(int(game_id))
+            if game:
+                if user.current_game_id == int(game_id):
+                    if isUserTurn(user,game):
+                        gameCall(user, int(game_id))
+                        socketio.emit(str(game_id) + ": card-table update") # notify other players
                 return redirect('/card-table')
     return redirect('/lobby')
 
@@ -162,11 +168,14 @@ def card_table_raise():
         if user:
             game = getGame(request.form['game_id'])
             if game:
-                raise_amount = request.form['raise_amount']
-                if raise_amount:
-                    gameRaise(user, game.id, int(raise_amount))
-                    socketio.emit(str(game.id) + ": card-table update") # notify other players
-                return redirect('/card-table')
+                if user.current_game_id == game.id:
+                    if isUserTurn(user,game):
+                        raise_amount = request.form['raise_amount']
+                        if raise_amount:
+                            if isUserTurn(user,game):
+                                gameRaise(user, game.id, int(raise_amount))
+                                socketio.emit(str(game.id) + ": card-table update") # notify other players
+                    return redirect('/card-table')
     return redirect('/lobby')
 
 def card_table_message():
@@ -186,16 +195,22 @@ def card_table_new_game(game_id):
         if user:
             game = getGame(int(game_id))
             if game:
-                if game.num_players >= getGameMinPlayers(game):
-                    gameStartNewGame(int(game_id))
-                    socketio.emit(game_id + ": card-table update") # notify other players
-                    return redirect('/card-table')
-                else:
-                    gameLeave(user)
-                    new_game_id = createNewGame(game.game_type_id)
-                    num_players = addPlayerToGame(user, new_game_id)
-                    socketio.emit(game_id + ": card-table update") # notify other players
+                num_players = getNumNonExitedPlayers(int(game_id))
+                print("Num players in new game = ", num_players)
+                if num_players >= getGameMinPlayers(game):
+                    game_started = gameStartNewGame(user, int(game_id))
                     socketio.emit("lobby update") # notify other players
+                    if game_started:
+                        socketio.emit(game_id + ": card-table update") # notify other players
+                        return redirect('/card-table')
+                    else:
+                        return redirect('/lobby')
+                else:
+                    # gameLeave(user)
+                    # new_game_id = createNewGame(game.game_type_id)
+                    # addPlayerToGame(user, new_game_id)
+                    # socketio.emit(game_id + ": card-table update") # notify other players
+                    # socketio.emit("lobby update") # notify other players
                     return redirect('/lobby')
     return redirect('/lobby')
 
