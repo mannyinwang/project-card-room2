@@ -11,7 +11,7 @@
 
     <!-- SocketIO connection to receive notifications of changes by another user to trigger reload of page -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script></head>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>   
     <script type="text/javascript">
         var socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on("lobby update", function() {
@@ -40,10 +40,11 @@
         <div class="row pt-4">
             <h4 class="col-12 pb-2">Active Games</h4>
             {% if games %}
-            <table class="table table-fixed text-left table-hover">
+            <table class="table table-fixed text-center table-hover">
                 <tr>
+                    <th>Id</th>
                     <th>Game</th>
-                    <th>Ante</th>
+                    <!-- <th>Ante</th> -->
                     <th>Max Raise</th>
                     <th>Pot</th>
                     <th>Players</th>
@@ -52,14 +53,15 @@
                 <tr>
                     {% for game in games %}
                         </tr>
-                            <td>{{game.game_type.game_name}}</td>
-                            <td>{{game.game_type.ante}}</td>
-                            <td>{{game.game_type.max_raise}}</td>
+                            <td>{{game.id}}</td>
+                            <td>{{game.game_name}}</td>
+                            <!-- <td>{{game.ante}}</td> -->
+                            <td>{{game.max_raise}}</td>
                             <td>{{game.pot}}</td>
-                            <td>{{game.num_players}} / {{game.game_type.min_players}} min - {{game.game_type.max_players}} max</td>
+                            <td>{{game.num_players}} / {{game.min_players}}-{{game.max_players}}</td>
                             {% if game.game_status == 0 or game.game_status == 1 %} <!-- game is waiting for players to join or playing -->
                                 <td>{% if game.game_status == 0 %}Waiting
-                                    {% else %}Playing
+                                    {% else %}Rnd {{game.round_num}} / {{game.num_rounds}}
                                     {% endif %}
                                 </td>
                                 {% if user.current_game_id == game.id %}
@@ -70,7 +72,7 @@
                                 <td></td>
                                 {% endif %}
                             {% else %}
-                                <td>Playing</td>
+                                <td>Done</td>
                                 <td></td>
                             {% endif %}
                         </tr>
@@ -82,9 +84,10 @@
         </div>
 
         <!-- New game inputs -->
+        {% if not user.current_game_id %}
         <form action="/lobby/new-game" method="post" class="col-5 pt-3">
             <div class="row">
-                <select type="text" name="game_type_id" class="input-lg col-4 rounded-0 px-3 mx-3" required>
+                <select type="text" name="game_type_id" class="input-sm col-4 rounded-0 px-3 mx-3" required>
                     {% for game_type in game_types %}
                         <option value="{{game_type.id}}">{{game_type.game_name}}</option>
                     {% endfor %}
@@ -92,6 +95,7 @@
                 <button type="submit" class="col-4 btn btn-dark btn-sm btn-block rounded-0 ml-3">Start New Game</button>
             </div>
         </form>
+        {% endif %}
 
         
     </div> <!-- End container-->

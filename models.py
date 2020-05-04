@@ -8,8 +8,6 @@ class User(db.Model):
     password = db.Column(db.String(255))
     balance = db.Column(db.Integer)
     photo = db.Column(db.BLOB)
-    # wins = db.Column(db.Integer)
-    # losses = db.Column(db.Integer)
     current_game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)  # is null if not currently in a game
     current_game = db.relationship("Game", foreign_keys=[current_game_id], backref="game_users")
     created_at = db.Column(db.DateTime, server_default=func.now())
