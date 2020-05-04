@@ -222,7 +222,7 @@ def getMessages(game_id, player_id):
 
 
 def createNewGame(game_type_id):
-    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, round_num = 0, current_bet = 0, starting_turn = 0, current_turn=0, num_players=0)
+    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, round_num = 0, current_bet = 0, starting_turn = 0, current_turn=0)
     db.session.add(new_game)
     db.session.commit()
     return new_game.id
@@ -235,7 +235,6 @@ def getNumPlayers(game_id):  # all players
 
 def getNumNonExitedPlayers(game_id):  
     num_players = User.query.filter_by(current_game_id=game_id).count()
-    # num_players = Player.query.filter(and_(Player.game_id==game_id, Player.result!=4), ).count()
     return num_players
 
 

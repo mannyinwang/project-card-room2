@@ -25,7 +25,6 @@ class Game(db.Model):
     current_bet = db.Column(db.Integer)
     betting = db.Column(db.Boolean, unique=False, default=False) # 0: done with betting round, # 1: betting round
     round_num = db.Column(db.Integer)  # number of rounds of cards dealt
-    num_players = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
