@@ -25,7 +25,9 @@
             <!-- Title -->
             <div class="col-auto">
                 <h2>Leader Board</h2>
+                {% if user %}
                 <h6>Welcome {{user.user_name}}!</h6>
+                {% endif %}
             </div>
             <!-- Navigation actions -->
             <div class="col-auto">
