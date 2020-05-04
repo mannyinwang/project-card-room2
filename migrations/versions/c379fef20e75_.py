@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: fc55e8c05f81
+Revision ID: c379fef20e75
 Revises: 
-Create Date: 2020-05-03 17:45:40.284795
+Create Date: 2020-05-03 20:15:30.329558
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fc55e8c05f81'
+revision = 'c379fef20e75'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -51,7 +51,6 @@ def upgrade():
     sa.Column('current_bet', sa.Integer(), nullable=True),
     sa.Column('betting', sa.Boolean(), nullable=True),
     sa.Column('round_num', sa.Integer(), nullable=True),
-    sa.Column('num_players', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['game_type_id'], ['game_types.id'], ),
