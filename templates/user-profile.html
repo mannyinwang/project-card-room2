@@ -28,38 +28,44 @@
         </div>
 
         <!-- User info -->
-        <h4 class="pb-2 pt-4">User Info</h4>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">User name: </p>
-            <div class="col-1"></div>
-            <p class="col-2">{{user.user_name}}</p>
-        </div>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">Email: </p>
-            <div class="col-1"></div>
-            <p class="col-2">{{user.email}}</p>
-        </div>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">Balance: </p>
-            <div class="col-1"></div>
-            <p class="col-2">{{user.balance}}</p>
-        </div>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">Wins: </p>
-            <div class="col-1"></div>
-            <p class="col-2">{{user.wins}}</p>
-        </div>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">Losses: </p>
-            <div class="col-1"></div>
-            <p class="col-2">{{user.losses}}</p>
-        </div>
-        <div class="row mb-2 align-items-left"> 
-            <p class="col-2">Record: </p>
-            <div class="col-1"></div>
-            {% if user.wins or user.losses %}
-            <p class="col-2">{{'%0.2f'| format(user.wins/(user.wins+user.losses))}}</p>
-            {% endif %}
+        <div class="row bg-primary border border-dark rounded-lg p-3 mt-4 mx-2">
+            <div class="col-12">
+                <h4 class="pb-2 pt-0 text-center text-white">User Info</h4>
+            </div>
+            <div class="col-12 bg-light">
+                <div class="row mb-2 mt-2 align-items-left"> 
+                    <p class="col-3">User name: </p>
+                    <div class="col-1"></div>
+                    <p class="col-3">{{user.user_name}}</p>
+                </div>
+                <div class="row mb-2 align-items-left"> 
+                    <p class="col-3">Email: </p>
+                    <div class="col-1"></div>
+                    <p class="col-3">{{user.email}}</p>
+                </div>
+                <div class="row mb-2 align-items-left"> 
+                    <p class="col-3">Balance: </p>
+                    <div class="col-1"></div>
+                    <p class="col-3">{{user.balance}}</p>
+                </div>
+                <div class="row mb-2 align-items-left"> 
+                    <p class="col-3">Wins: </p>
+                    <div class="col-1"></div>
+                    <p class="col-3">{{user.wins}}</p>
+                </div>
+                <div class="row mb-2 align-items-left"> 
+                    <p class="col-3">Losses: </p>
+                    <div class="col-1"></div>
+                    <p class="col-3">{{user.losses}}</p>
+                </div>
+                <div class="row mb-2 align-items-left"> 
+                    <p class="col-3">Record: </p>
+                    <div class="col-1"></div>
+                    {% if user.wins or user.losses %}
+                    <p class="col-3">{{'%0.2f'| format(user.wins/(user.wins+user.losses))}}</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         
     </div>

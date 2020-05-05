@@ -115,6 +115,7 @@ def getLobbyInfo(user):
         gameTypeInfo = {}
         gameTypeInfo['id'] = game_type.id
         gameTypeInfo['game_name'] = game_type.game_name
+        print(gameTypeInfo)
         lobbyInfo['game_types'].append(gameTypeInfo)
     return lobbyInfo
 
@@ -440,6 +441,7 @@ def gameFold(user, game_id):
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     player.result = 3  # set to loss
     db.session.commit()
+    gameMessage(user, game_id, "I fold!")
     # check if more than one player active; if so, advance turn; if not, remaining player is winner
     num_active_players = getNumActivePlayers(game_id)
     if num_active_players > 1:
@@ -485,6 +487,7 @@ def gameCall(user, game_id):
     game = Game.query.get(game_id)
     bet = game.current_bet - player.total_bet
     makeBet(user, game, bet)
+    gameMessage(user, game_id, "I call")
     advanceTurn(game_id)
     return False
 
@@ -503,6 +506,7 @@ def gameRaise(user, game_id, raise_amount):
     game.starting_turn = player.turn
     game.updated_at = datetime.now()
     db.session.commit()
+    gameMessage(user, game_id, "I raise by " + str(raise_amount))
     advanceTurn(game_id)
     return False
 
