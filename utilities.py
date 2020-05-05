@@ -6,29 +6,33 @@ from datetime import datetime
 
 starting_balance = 10000
 
+
 def addUser(user_name, email, password, confirm):
     user_added = False
     if len(user_name) == 0:
         flash("Please enter user name.")
-    elif not EMAIL_REGEX.match(email):    # test whether a field matches the pattern
+    elif not EMAIL_REGEX.match(email):  # test whether a field matches the pattern
         flash("Invalid email address.")
-    elif not re.search(PWD_REGEX, password): 
-        flash("Password must be 6-20 characters and contain one or more of each of: a number, uppercase letter, lower case letter, and special symbol.")
+    elif not re.search(PWD_REGEX, password):
+        flash(
+            "Password must be 6-20 characters and contain one or more of each of: a number, uppercase letter, lower case letter, and special symbol.")
     elif password != confirm:
         flash("Password confirmation does not match.")
-    else: 
+    else:
         # check if email address already exists
         result = User.query.filter_by(email=email).first()
         if result:
             flash("Account already exists.")
         else:
             # add new member
-            new_user = User(user_name=user_name, email=email, password=bcrypt.generate_password_hash(password), balance=starting_balance, wins=0, losses=0, current_game_id=None)
+            new_user = User(user_name=user_name, email=email, password=bcrypt.generate_password_hash(password),
+                            balance=starting_balance, wins=0, losses=0, current_game_id=None)
             db.session.add(new_user)
             db.session.commit()
             flash("New user added.")
             user_added = True
     return user_added
+
 
 def loginUser(email, password):
     user_id = False
@@ -42,9 +46,11 @@ def loginUser(email, password):
         flash("Unknown user.")
     return user_id
 
+
 def getUser(user_id):
     user = User.query.get(user_id)
     return user
+
 
 def getUserTurn(game_id, user_id):
     player = Player.query.filter_by(game_id=game_id, player_id=user_id).first()
@@ -53,18 +59,21 @@ def getUserTurn(game_id, user_id):
     else:
         return False
 
+
 def getActiveGames():
     # get game info for all active games, i.e. with game_status == 0 or 1
     # game_status: 0 if waiting, 1 if playing, 2 if completed
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
-    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status ==1)).all()
+    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1)).all()
     return active_games  # return game info
+
 
 def getGameTypes():
     # get info for available game types 
     # returns game type info (game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
     game_types = GameType.query.all()
     return game_types  # return game types
+
 
 def getGameIDFromUserID(user_id):
     user = User.query.get(user_id)
@@ -73,6 +82,7 @@ def getGameIDFromUserID(user_id):
         return game.id
     else:
         return False
+
 
 def getGameInfo(user, game):
     players = getPlayers(game.id)
@@ -103,7 +113,7 @@ def getGameInfo(user, game):
         playerInfo['cards'] = []
         cards = Card.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Card.updated_at)
         for card in cards:
-            cardInfo = {}   
+            cardInfo = {}
             cardInfo['face_up'] = card.face_up
             if card.face_up:
                 cardInfo['number'] = card.number
@@ -112,7 +122,8 @@ def getGameInfo(user, game):
                 cardInfo['number'] = 0
                 cardInfo['suit'] = 0
             playerInfo['cards'].append(cardInfo)
-        message = Message.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(Message.created_at.desc()).first()
+        message = Message.query.filter_by(player_id=player.player_id, game_id=game.id).order_by(
+            Message.created_at.desc()).first()
         if message:
             playerInfo['message'] = message.message
         gameInfo['players'].append(playerInfo)
@@ -127,29 +138,35 @@ def getGameInfo(user, game):
 
     return gameInfo
 
+
 def getGame(game_id):
     # get game info for game_id
     # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form a dictionary
     game = Game.query.get(game_id)
     return game
 
+
 def getGameMinPlayers(game):
     return game.game_type.min_players
+
 
 def getPlayers(game_id):
     players = Player.query.filter_by(game_id=game_id)
     return players
 
+
 def getCards(game_id, player_id):
     cards = Card.query.filter_by(game_id=game_id, player_id=player_id)
     return cards
 
+
 def getMessages(game_id, player_id):
     result = Message.query.filter_by(game_id=game_id, player_id=player_id).order_by(Message.created_at.desc()).first()
-    if result: 
+    if result:
         return result.message
     else:
         return False
+
 
 def createNewGame(game_type_id):
     new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, current_turn=0, num_players=0)
@@ -157,19 +174,23 @@ def createNewGame(game_type_id):
     db.session.commit()
     return new_game.id
 
+
 def getNumPlayers(game_id):
     num_players = Game.query.get(game_id).num_players
     return num_players
 
+
 def getNumActivePlayers(game_id):
     num_active_players = Player.query.filter_by(game_id=game_id, result=1).count()
     return num_active_players
+
 
 def addToNumPlayers(game_id, adder):
     num_players = getNumPlayers(game_id)
     Game.query.get(game_id).num_players = num_players + adder
     db.session.commit()
     return num_players + adder
+
 
 def addPlayerToGame(user, game_id):
     # if user is already in game, cannot add
@@ -181,7 +202,7 @@ def addPlayerToGame(user, game_id):
             db.session.commit()
         else:
             # add user to players for game_id
-            new_player = Player(result=0, total_bet=0, turn=0, game_id=game_id, player_id = user.id)
+            new_player = Player(result=0, total_bet=0, turn=0, game_id=game_id, player_id=user.id)
             db.session.add(new_player)
             db.session.commit()
         # increment number of players in game by 1
@@ -193,6 +214,7 @@ def addPlayerToGame(user, game_id):
     else:
         return False  # cannot add user to game since already in a game
 
+
 def removePlayerFromGame(user, game_id):
     # if user not in a game, cannot remove
     if user.current_game_id != None:
@@ -202,7 +224,7 @@ def removePlayerFromGame(user, game_id):
             player.result = 4  # set to 4 for exited before playing
             db.session.commit()
             # decrement number of players in game by 1
-            num_players = addToNumPlayers(game_id, -1) 
+            num_players = addToNumPlayers(game_id, -1)
             # update users.current_game_id to 0
             user.current_game_id = None
             db.session.commit()
@@ -212,10 +234,11 @@ def removePlayerFromGame(user, game_id):
     else:
         return False  # cannot remove user from game since not in a game
 
+
 def startGame(game_id):
     # change games.game_status to 1 and set starting current_turn
     game = getGame(game_id)
-    game.game_status = 1 # 0 = waiting, 1 = playing, 2 = completed
+    game.game_status = 1  # 0 = waiting, 1 = playing, 2 = completed
     game.current_turn = 1
     game.starting_turn = 1
     game.betting = 0
@@ -224,7 +247,7 @@ def startGame(game_id):
     # ante up players and set players' turns (i.e. positions at table) and result=1
     players = getPlayers(game_id)
     num_players = getNumPlayers(game_id)
-    turns = list(range(1,num_players+1))
+    turns = list(range(1, num_players + 1))
     shuffle(turns)
     i = 0
     for player in players:
@@ -236,12 +259,13 @@ def startGame(game_id):
     game.current_bet = game.game_type.ante
     db.session.commit()
     # create card deck
-    for number in range(2,15): # 2-10 numbers, 11 = Jack, 12 = Queen, 13 = King, 14 = Ace
-        for suit in range(1,5):  # 1: clubs, 2: diamonds, 3: hearts, 4: spades
+    for number in range(2, 15):  # 2-10 numbers, 11 = Jack, 12 = Queen, 13 = King, 14 = Ace
+        for suit in range(1, 5):  # 1: clubs, 2: diamonds, 3: hearts, 4: spades
             new_card = Card(number=number, suit=suit, face_up=0, game_id=game_id)
             db.session.add(new_card)
     db.session.commit()
     return True
+
 
 def getCardsInDeck(game_id):
     cards = Card.query.filter_by(game_id=game_id, player_id=None)
@@ -250,25 +274,28 @@ def getCardsInDeck(game_id):
     else:
         return cards
 
+
 def dealCard(game_id, user_id, face_up):
     # randomly pick card from remaining undealt cards in deck
     cards = getCardsInDeck(game_id)
     if cards:
-        card = cards[randint(0, cards.count()-1)]
+        card = cards[randint(0, cards.count() - 1)]
         # deal card to user
         card.player_id = user_id
         card.face_up = face_up
         card.updated_at = datetime.now()
         db.session.commit()
         return True
-    else: # no cards left in deck
+    else:  # no cards left in deck
         return False
+
 
 def getNumRounds(game_id):
     # returns number of rounds cards are dealt in the game
     game = Game.query.get(game_id)
     num_rounds = GameRound.query.filter_by(game_type_id=game.game_type_id).count()
     return num_rounds
+
 
 def dealRound(game_id):
     # returns True if betting after this round is dealt, False otherwise
@@ -283,6 +310,7 @@ def dealRound(game_id):
     print("game_round.round_num = ", game_round.round_num)
     print("game_round.betting = ", game_round.betting)
     return game_round.betting
+
 
 def advanceTurn(game_id):
     game = getGame(game_id)
@@ -306,6 +334,7 @@ def advanceTurn(game_id):
     db.session.commit()
     return
 
+
 def makeBet(user, game, amount):
     # deduct amount from user's balance
     user.balance = user.balance - amount
@@ -317,6 +346,7 @@ def makeBet(user, game, amount):
     db.session.commit()
     return
 
+
 def gameStartBettingRound(user, game_id):
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     game = Game.query.get(game_id)
@@ -324,6 +354,7 @@ def gameStartBettingRound(user, game_id):
     game.betting = 1
     db.session.commit()
     return
+
 
 def gameFold(user, game_id):
     # set player.result = 3 for loss and user.losses += 1
@@ -339,6 +370,7 @@ def gameFold(user, game_id):
         gameEnd(game_id)
     return
 
+
 def gameLeave(user):
     player = Player.query.filter_by(game_id=user.current_game_id, player_id=user.id).first()
     player.result = 4
@@ -347,6 +379,7 @@ def gameLeave(user):
     db.session.commit()
     return False
 
+
 def gameCall(user, game_id):
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
     game = Game.query.get(game_id)
@@ -354,6 +387,7 @@ def gameCall(user, game_id):
     makeBet(user, game, bet)
     advanceTurn(game_id)
     return False
+
 
 def gameRaise(user, game_id, raise_amount):
     player = Player.query.filter_by(game_id=game_id, player_id=user.id).first()
@@ -370,11 +404,24 @@ def gameRaise(user, game_id, raise_amount):
     advanceTurn(game_id)
     return False
 
+
 def gameMessage(user, game_id, message_content):
     new_message = Message(message=message_content, player_id=user.id, game_id=game_id)
     db.session.add(new_message)
     db.session.commit()
     return new_message
+
+def gameStartNewGame(game_id):
+    previous_game = Game.query.get(game_id)
+    players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
+    new_game_id = createNewGame(previous_game.game_type_id)
+    for player in players:
+        user = User.query.get(player.player_id)
+        user.current_game_id = None
+        db.session.commit()
+        addPlayerToGame(user, new_game_id)
+    startGame(new_game_id)
+    return
 
 def gameEnd(game_id):
     # change game_status to 2 = completed
@@ -398,6 +445,7 @@ def gameEnd(game_id):
                 gameDeclareLoser(player)
     return
 
+
 def gameDeclareWinner(player):
     player.result = 2
     user = User.query.get(player.player_id)
@@ -408,6 +456,7 @@ def gameDeclareWinner(player):
     db.session.commit()
     return
 
+
 def gameDeclareLoser(player):
     player.result = 3
     user = User.query.get(player.player_id)
@@ -415,38 +464,35 @@ def gameDeclareLoser(player):
     db.session.commit()
     return
 
+
 def gameShowHands(game_id):
     return
+
 
 def scoreHand(cards):
     num_cards = len(cards)
     if num_cards == 1:
-        score = 1+ cards[0].number/10
+        score = 1 + cards[0].number / 10
     elif num_cards == 2:
         if cards[0].number == cards[1].number:  # pair
             score = 2
     return score
 
-def scoreCard(card):
-    score = 1+ card.number/10
-    return score
 
-def gameStartNewGame(game_id):
-    previous_game = Game.query.get(game_id)
-    players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
-    new_game_id = createNewGame(previous_game.game_type_id)
-    for player in players:
-        user = User.query.get(player.player_id)
-        user.current_game_id = None
-        db.session.commit()
-        addPlayerToGame(user, new_game_id)
-    startGame(new_game_id)
-    return
+def scoreCard(card):
+    score = 1 + card.number / 10
+    return score
 
 def getTopWinLossRecords(num_of_players):
     topWLRecords = User.query.order_by((User.wins / (User.losses + User.wins)).desc()).limit(10)
     return topWLRecords
 
+
 def getTopBettors(num_of_players):
     topBettors = User.query.order_by(User.balance.desc()).limit(10)
     return topBettors
+
+def rules():
+    print('Welcome')
+    print("This is crazy")
+
