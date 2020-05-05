@@ -24,7 +24,7 @@
         <div class="row justify-content-between mt-4 mb-2">
             <!-- Title -->
             <div class="col-auto">
-                <h2>Lobby</h2>
+                <h2>The Card Room</h2>
                 <h6>Welcome {{user.user_name}}!</h6>
             </div>
             <!-- Navigation actions -->
@@ -38,63 +38,68 @@
 
         <!-- Active games -->
         <div class="row pt-4">
-            <h4 class="col-12 pb-2">Active Games</h4>
+            <!-- <h4 class="col-12 pb-2">Active Games</h4> -->
             {% if games %}
-            <table class="table table-fixed text-center table-hover">
-                <tr>
-                    <th>Id</th>
-                    <th>Game</th>
-                    <!-- <th>Ante</th> -->
-                    <th>Max Raise</th>
-                    <th>Pot</th>
-                    <th>Players</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                <tr>
-                    {% for game in games %}
-                        </tr>
-                            <td>{{game.id}}</td>
-                            <td>{{game.game_name}}</td>
-                            <!-- <td>{{game.ante}}</td> -->
-                            <td>{{game.max_raise}}</td>
-                            <td>{{game.pot}}</td>
-                            <td>{{game.num_players}} / {{game.min_players}}-{{game.max_players}}</td>
-                            {% if game.game_status == 0 or game.game_status == 1 %} <!-- game is waiting for players to join or playing -->
-                                <td>{% if game.game_status == 0 %}Waiting
-                                    {% else %}Rnd {{game.round_num}} / {{game.num_rounds}}
-                                    {% endif %}
-                                </td>
-                                {% if user.current_game_id == game.id %}
-                                <td><a href="/lobby/leave-game/{{game.id}}" class="button btn-sm btn-primary">Leave</a></td>
-                                {% elif not user.current_game_id: %}
-                                <td><a href="/lobby/join-game/{{game.id}}" class="button btn-sm btn-primary">Join</a></td>
-                                {% else %}
-                                <td></td>
-                                {% endif %}
-                            {% else %}
-                                <td>Done</td>
-                                <td></td>
+                {% for game in games %}
+                <div class="col-5 bg-success border border-secondary rounded-circle text-white text-center mx-0 px-0 mb-4 mt-2 pt-4" style="height: 220px">
+                    <!-- <h5>{{game.game_name}}</h5> -->
+                    <div class="row mx-0 px-0 text-center">
+                        <div class="col-2"></div>
+                        <div class="col-8 text-center"><h5>{{game.game_name}}</h5></div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="row text-dark">
+                        <div class="col-12 mx-0 px-0">Max Raise: {{game.max_raise}}  |  Ante: {{game.ante}}</div>
+                    </div>
+                    <div class="row text-dark">
+                        <div class="col-12 mx-0 px-0">Players: {{game.num_players}} / {{game.min_players}}-{{game.max_players}}</div>
+                    </div>
+                    <div class="row text-dark">
+                        <div class="col-12 mx-0 px-0">Status: {% if game.game_status == 0 %}Waiting
+                            {% elif game.game_status == 1 %}Rnd {{game.round_num}} / {{game.num_rounds}}
+                            {% else %}Done
+                            {% endif %}</div>
+                    </div>
+                    <div class="row text-dark">
+                        <div class="col-12 mx-0 px-0">Pot: {{game.pot}}</div>
+                    </div>
+                    <div class="row text-center mt-2">
+                        <div class="col"></div>
+                        <div class="col-4">
+                            {% if user.current_game_id == game.id %}
+                            <a href="/lobby/leave-game/{{game.id}}" class="button border btn-sm btn-warning">Leave</a>
+                            {% elif not user.current_game_id: %}
+                            <a href="/lobby/join-game/{{game.id}}" class="button border btn-sm btn-primary">Join</a>
                             {% endif %}
-                        </tr>
-                    {% endfor %}
-            </table>
+                        </div>
+                        <div class="col"></div>
+                    </div>
+                </div>
+                <div class="col-1"></div>
+                {% endfor %}
             {% else %}
-            <h6>No active games</h6>
+                <h6>No active games</h6>
             {% endif %}
         </div>
 
+
         <!-- New game inputs -->
         {% if not user.current_game_id %}
-        <form action="/lobby/new-game" method="post" class="col-5 pt-3">
-            <div class="row">
-                <select type="text" name="game_type_id" class="input-sm col-4 rounded-0 px-3 mx-3" required>
-                    {% for game_type in game_types %}
-                        <option value="{{game_type.id}}">{{game_type.game_name}}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="col-4 btn btn-dark btn-sm btn-block rounded-0 ml-3">Start New Game</button>
-            </div>
-        </form>
+        <div class="row pt-2 border border-secondary rounded-lg mt-4 pb-2">
+            <form action="/lobby/new-game" method="post" class="row align-items-center">
+                <div class="col"></div>
+                <div class="col-4">
+                    <select type="text" name="game_type_id" class="input-sm rounded-0 mx-0" required>
+                        {% for game_type in game_types %}
+                            <option value="{{game_type.id}}">{{game_type.game_name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-1"></div>
+                <button type="submit" class="col-4 btn btn-dark btn-sm btn-block rounded-0 ml-5">Start New Game</button>
+                <div class="col"></div>
+            </form>
+        </div>
         {% endif %}
 
         

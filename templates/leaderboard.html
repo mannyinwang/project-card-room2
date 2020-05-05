@@ -40,21 +40,19 @@
 
         <div class="row pt-4">
             <!-- Top Records -->
-            <div class="col-5">
-                <h4 class="pb-2">Top Records</h4>
+            <div class="col-6 bg-primary text-white border border-dark rounded-lg p-2 mx-3">
+                <h4 class="pb-2 text-center">Top Records</h4>
                 {% if records %}
-                    <table class="table table-fixed text-center table-hover">
+                    <table class="bg-light table table-fixed text-dark text-center table-hover">
                         <tr scope="row">
                             <th>User</th>
-                            <th>Wins</th>
-                            <th>Losses</th>
+                            <th>Win-Loss</th>
                             <th>Record</th>
                         </tr>
                     {% for record in records %}
                         <tr scope="row">
                             <td>{{record.user_name}}</td>
-                            <td>{{record.wins}}</td>
-                            <td>{{record.losses}}</td>
+                            <td>{{record.wins}}-{{record.losses}}</td>
                             <td>{%if record.wins or record.losses %}{{'%0.2f'| format(record.wins/(record.wins+record.losses))}}{%endif%}</td>
                         </tr>
                     {% endfor %}
@@ -64,13 +62,11 @@
                 {% endif %}
             </div>
 
-            <div class="col-1"></div>
-
             <!-- Top Bettors -->
-            <div class="col-5">
-                <h4 class="pb-2">Top Bettors</h4>
+            <div class="col-5 bg-success text-white border border-dark rounded-lg p-2">
+                <h4 class="pb-2 text-center">Top Bettors</h4>
                 {% if bettors %}
-                    <table class="table table-fixed text-center table-hover">
+                    <table class="bg-light table table-fixed text-dark text-center table-hover">
                         <tr scope="row">
                             <th>User</th>
                             <th>Total Winnings</th>

@@ -11,7 +11,7 @@ def login_action():
     user_id = loginUser(request.form['email'], request.form['password'])
     if id:
         session['user_id'] = user_id
-        return redirect('/user-profile')
+        return redirect('/lobby')
     else:
         return redirect('/login-registration')
 
