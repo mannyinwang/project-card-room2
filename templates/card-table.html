@@ -46,10 +46,169 @@
         </div>
 
         <!-- Players info -->
-        <div class="row pt-5">
+        <div class="container">
             <!-- <h4 class="col-12 pb-2">Players</h4> -->
-            <table class="table table-fixed text-left table-hover">
-                <tbody>
+            <div class="row 1">
+                <div class="col-4">
+                    <!--Row 1 col 1-->
+                </div>
+                <div class="col-4" style="border: 1px solid gray;">
+                    
+                    <ul>               
+                        <p>Player: {{players[0].user_name}}</p>
+                        <p>Balance: {{players[0].balance}}</p>
+                        <p>Total Bets:{{players[0].total_bet}}</p>
+                        <p>Turn: {{players[0].turn}}</p>
+                        <p>{% if players[0].result == 0 %}waiting
+                            {% elif players[0].result == 1 %}playing
+                            {% elif players[0].result == 2: %}winner
+                            {% elif players[0].result == 3: %}loser
+                            {% else: %}exited
+                            {% endif %}
+                        </p>
+                        <p>
+                            <div class="row mx-0 px-0" style="height: 85px; width: 1000px">
+                                {% for card in cards %}
+                                    {% if not card.face_up %}
+                                    <div class="col-1 bg-secondary text-white border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% else %}
+                                    <div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% endif %}
+                                    {% if card.suit == 1 %}{{card.number}}C
+                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
+                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
+                                    {% else %}{{card.number}}S
+                                    {% endif %}
+                                    </div> 
+                                {% endfor %}
+                            </div>
+                        </p>
+                    </ul>
+
+
+
+                </div>
+                <div class="col-4">
+                    <!--Row 1 col 3-->
+                </div>
+            </div>
+            <div class="row 2">
+                <div class="col-4" style="border: 1px solid gray;">
+
+                    <ul>
+                        <p>Player: {{players[1].user_name}}</p>
+                        <p>Balance: {{players[1].balance}}</p>
+                        <p>Total Bets:{{players[1].total_bet}}</p>
+                        <p>Turn: {{players[1].turn}}</p>
+                        <p>{% if players[1].result == 0 %}waiting
+                            {% elif players[1].result == 1 %}playing
+                            {% elif players[1].result == 2: %}winner
+                            {% elif players[1].result == 3: %}loser
+                            {% else: %}exited
+                            {% endif %}
+                        </p>
+                        <p>
+                            <div class="row mx-0 px-0" style="height: 85px; width: 1000px">
+                                {% for card in players[1].cards %}
+                                    {% if not card.face_up %}
+                                    <div class="col-1 bg-secondary text-white border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% else %}
+                                    <div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% endif %}
+                                    {% if card.suit == 1 %}{{card.number}}C
+                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
+                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
+                                    {% else %}{{card.number}}S
+                                    {% endif %}
+                                    </div> 
+                                {% endfor %}
+                            </div>
+                        </p>
+
+                    </ul>
+                </div>
+                <div class="col-4">
+                    Card-Table
+                </div>
+                <div class="col-4" style="border: 1px solid gray;">
+                    {% if players|length > 2 %}
+
+                        <p>Player: {{players[2].user_name}}</p>
+                        <p>Balance: {{players[2].balance}}</p>
+                        <p>Total Bets:{{players[2].total_bet}}</tr>
+                        <p>Turn: {{players[2].turn}}</p>
+                        <p>{% if players[2].result == 0 %}waiting
+                            {% elif players[2].result == 1 %}playing
+                            {% elif players[2].result == 2: %}winner
+                            {% elif players[2].result == 3: %}loser
+                            {% else: %}exited
+                            {% endif %}
+                        </p>
+                        <p>
+                            <div class="row mx-0 px-0" style="height: 85px; width: 1000px">
+                                {% for card in players[2].cards %}
+                                    {% if not card.face_up %}
+                                    <div class="col-1 bg-secondary text-white border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% else %}
+                                    <div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">
+                                    {% endif %}
+                                    {% if card.suit == 1 %}{{card.number}}C
+                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
+                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
+                                    {% else %}{{card.number}}S
+                                    {% endif %}
+                                    </div> 
+                                {% endfor %}
+                            </div>
+                        </p>
+
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row 3">
+                <div class="col-4">
+                    <!--Row 3 col 1-->
+                </div>
+                <div class="col-4" style="border: 1px solid gray;">
+                    {% if players|length > 3: %}
+                        <p>Player: {{players[3].user_name}}</p>
+                        <p>Balance: {{players[3].balance}}</p>
+                        <p>Total Bets:{{players[3].total_bet}}</p>
+                        <p>Turn: {{players[3].turn}}</p>
+                        <p><div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">{% if players[3].result == 0 %}waiting
+                            {% elif players[3].result == 1 %}playing
+                            {% elif players[3].result == 2: %}winner
+                            {% elif players[3].result == 3: %}loser
+                            {% else: %}exited
+                            {% endif %}</div>
+                        </p>
+                    <p>
+                        <div class="row mx-0 px-0" style="height: 85px; width: 1000px">
+                            {% for card in players[3].cards %}
+                                {% if not card.face_up %}
+                                <div class="col-1 bg-secondary text-white border border-secondary rounded-lg text-center mx-1 px-0">
+                                {% else %}
+                                <div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">
+                                {% endif %}
+                                {% if card.suit == 1 %}{{card.number}}C
+                                {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
+                                {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
+                                {% else %}{{card.number}}S
+                                {% endif %}
+                                </div> 
+                            {% endfor %}
+                        </div>
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="col-4">
+                    <!--Row 3 col 3-->
+                </div>
+            </div>
+            
+        </div>
+
+                <!--<tbody>
                     <tr scope='row'>
                         <th>Player</th>
                         <th>Balance</th>
@@ -92,14 +251,14 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+        </div>-->
 
         <!-- User's cards -->
-        <h4 class="col-12 pb-3 ml-0 pl-0">{{user.user_name}}'s Cards</h4>
+        <!--<h4 class="col-12 pb-3 ml-0 pl-0">{{user.user_name}}'s Cards</h4>
         <div class="row mx-0 px-0" style="height: 85px">
             {% for card in cards %}
                 {% if not card.face_up %}
-                <div class="col-1 bg-primary text-white border border-secondary rounded-lg text-center mx-1 px-0">
+                <div class="col-1 bg-secondary text-white border border-secondary rounded-lg text-center mx-1 px-0">
                 {% else %}
                 <div class="col-1 border border-secondary rounded-lg text-center mx-1 px-0">
                 {% endif %}
@@ -111,7 +270,7 @@
                 </div> 
             {% endfor %}
             </p>
-        </div>
+        </div>-->
 
         <!-- Game play actions -->
         <div class="row pt-2 border border-secondary rounded-lg mt-4 pb-2">
