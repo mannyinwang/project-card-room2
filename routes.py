@@ -1,6 +1,5 @@
 from config import app
 from controller import *
-from dummy import DUMMYcard_table
 
 app.add_url_rule('/', view_func=login_registration)
 app.add_url_rule('/login-registration', view_func=login_registration)
@@ -13,9 +12,6 @@ app.add_url_rule('/lobby/join-game/<game_id>', view_func=lobby_join_game)
 app.add_url_rule('/lobby/leave-game/<game_id>', view_func=lobby_leave_game)
 app.add_url_rule('/lobby/new-game', view_func=lobby_new_game, methods=['POST'])
 app.add_url_rule('/card-table', view_func=card_table)
-
-# route for dummy data for developing front-end for /card-table
-app.add_url_rule('/card-table/dummy', view_func=DUMMYcard_table)
 
 app.add_url_rule('/card-table/fold/<game_id>', view_func=card_table_fold)
 app.add_url_rule('/card-table/call/<game_id>', view_func=card_table_call)
