@@ -60,6 +60,22 @@ def getUserTurn(game_id, user_id):
         return False
 
 
+def getUserTotalBet(game_id, user_id):
+    player = Player.query.filter_by(game_id=game_id, player_id=user_id).first()
+    if player:
+        return player.total_bet
+    else:
+        return False
+
+
+def getUserResult(game_id, user_id):
+    player = Player.query.filter_by(game_id=game_id, player_id=user_id).first()
+    if player:
+        return player.result
+    else:
+        return False
+
+
 def getActiveGames():
     # get game info for all active games, i.e. with game_status == 0 or 1
     # game_status: 0 if waiting, 1 if playing, 2 if completed
@@ -121,12 +137,19 @@ def getLobbyInfo(user):
 
 
 def getGameInfo(user, game):
-    players = getPlayers(game.id)
     cards = getCards(game.id, user.id)
     gameInfo = {}
     gameInfo['user'] = {}
     gameInfo['user']['user_name'] = user.user_name
-    gameInfo['user']['turn'] = getUserTurn(game.id, user.id)
+    gameInfo['user']['balance'] = user.balance
+    gameInfo['user']['total_bet'] = getUserTotalBet(game.id, user.id)
+    user_turn = getUserTurn(game.id, user.id)
+    gameInfo['user']['turn'] = user_turn
+    gameInfo['user']['result'] = getUserResult(game.id, user.id)
+    message = Message.query.filter_by(player_id=user.id, game_id=game.id).order_by(
+        Message.created_at.desc()).first()
+    if message:
+        gameInfo['user']['message'] = message.message
     gameInfo['game'] = {}
     gameInfo['game']['id'] = game.id
     gameInfo['game']['game_name'] = game.game_type.game_name
@@ -138,9 +161,10 @@ def getGameInfo(user, game):
     gameInfo['game']['max_raise'] = game.game_type.max_raise
     gameInfo['game']['time_limit'] = game.game_type.time_limit
     gameInfo['game']['num_players'] = getNumActivePlayers(game.id)
-    gameInfo['players'] = []
+    players = getOrderedPlayers(user_turn, game.id)
+    playersInfo= []
     for player in players:
-        if player.result != 4:
+        if player.result != 4:  # player exited
             playerInfo = {}
             playerInfo['user_name'] = player.player.user_name
             playerInfo['balance'] = player.player.balance
@@ -163,7 +187,11 @@ def getGameInfo(user, game):
                 Message.created_at.desc()).first()
             if message:
                 playerInfo['message'] = message.message
-            gameInfo['players'].append(playerInfo)
+            playersInfo.append(playerInfo)
+    if len(playersInfo) < 4:
+        for i in range(len(playersInfo),5):
+            playersInfo.append({})
+    gameInfo['players'] = playersInfo
     gameInfo['cards'] = []
     cards = Card.query.filter_by(player_id=user.id, game_id=game.id).order_by(Card.updated_at)
     for card in cards:
@@ -205,7 +233,24 @@ def getGameMinPlayers(game):
 
 
 def getPlayers(game_id):
-    players = Player.query.filter_by(game_id=game_id)
+    players = Player.query.filter_by(game_id=game_id).order_by(Player.turn)
+    return players
+
+
+def getOrderedPlayers(user_turn, game_id):
+    print("start ordering")
+    unordered_players = getPlayers(game_id)
+    num_players = unordered_players.count()
+    for i in range(num_players):
+        if unordered_players[i].turn == user_turn:
+            break
+    players = []
+    print("num_players = ", num_players)
+    for j in range(num_players):
+        print("j = ", j)
+        players.append(unordered_players[i])
+        i = ((i+1) % num_players)
+    print("end ordering")
     return players
 
 
