@@ -426,9 +426,9 @@ def dealRound(game_id):
     # returns True if betting after this round is dealt, False otherwise
     players = Player.query.filter_by(game_id=game_id, result=1)
     game = Game.query.get(game_id)
+    game.betting = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num+1).first().betting
     game.round_num = game.round_num + 1
     game.updated_at = datetime.now()
-    # game.betting = True
     db.session.commit()
     game_round = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num).first()
     for player in players:
