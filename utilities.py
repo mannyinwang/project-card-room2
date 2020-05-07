@@ -4,6 +4,7 @@ from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
 from datetime import datetime, timedelta
 
+
 starting_balance = 10000
 
 
@@ -14,8 +15,8 @@ def addUser(user_name, email, password, confirm):
     elif not EMAIL_REGEX.match(email):  # test whether a field matches the pattern
         flash("Invalid email address.")
     elif not re.search(PWD_REGEX, password):
-        flash(
-            "Password must be 6-20 characters and contain one or more of each of: a number, uppercase letter, lower case letter, and special symbol.")
+        flash("Password must be 6-20 characters and contain one or more of each of: a number, uppercase letter, "
+              "lower case letter, and special symbol.")
     elif password != confirm:
         flash("Password confirmation does not match.")
     else:
@@ -61,19 +62,21 @@ def getUserTurn(game_id, user_id):
 
 
 def getActiveGames():
-    # get game info for all active games, i.e. with game_status == 0 or 1
-    # game_status: 0 if waiting, 1 if playing, 2 if completed
-    # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
-    # yesterday = datetime.now() - timedelta(days=0)
-    # active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1, Game.updated_at > yesterday)).all()
-    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1)).all() 
+    # get game info for all active games, i.e. with game_status == 0 or 1 game_status:
+    # 0 if waiting, 1 if playing, 2 if completed returns game info
+    # (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise)
+    # in the form of an array of dictionaries yesterday = datetime.now() - timedelta(days=0)
+    # active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1, Game.updated_at >
+    # yesterday)).all()
+    active_games = Game.query.filter(or_(Game.game_status == 0, Game.game_status == 1)).all()
     # print("datetime info:", int(Game.updated_at), int(datetime.now()))
     return active_games  # return game info
 
 
 def getGameTypes():
-    # get info for available game types 
-    # returns game type info (game_name, time_limit, min_players, max_players, ante, max_raise) in the form of an array of dictionaries
+    # get info for available game types
+    # returns game type info in the form of an array of dictionaries below
+    # (game_name, time_limit, min_players, max_players, ante, max_raise)
     game_types = GameType.query.all()
     return game_types  # return game types
 
@@ -86,6 +89,7 @@ def getGameIDFromUserID(user_id):
     else:
         return False
 
+
 def getLobbyInfo(user):
     lobbyInfo = {}
     lobbyInfo['user'] = {}
@@ -94,27 +98,24 @@ def getLobbyInfo(user):
     lobbyInfo['games'] = []
     games = getActiveGames()
     for game in games:
-        gameInfo = {}
-        gameInfo['id'] = game.id
-        gameInfo['game_name'] = game.game_type.game_name
-        gameInfo['game_status'] = game.game_status
-        gameInfo['ante'] = game.game_type.ante
-        gameInfo['round_num'] = game.round_num
-        gameInfo['num_rounds'] = getNumRounds(game.id)
-        gameInfo['pot'] = game.pot
-        gameInfo['current_turn'] = game.current_turn
-        gameInfo['max_raise'] = game.game_type.max_raise
-        gameInfo['time_limit'] = game.game_type.time_limit
-        gameInfo['min_players'] = game.game_type.min_players
-        gameInfo['max_players'] = game.game_type.max_players
-        gameInfo['num_players'] = getNumNonExitedPlayers(game.id)
+        gameInfo = {'id': game.id,
+                    'game_name': game.game_type.game_name,
+                    'game_status': game.game_status,
+                    'ante': game.game_type.ante,
+                    'round_num': game.round_num, 'num_rounds': getNumRounds(game.id),
+                    'pot': game.pot,
+                    'current_turn': game.current_turn,
+                    'max_raise': game.game_type.max_raise,
+                    'time_limit': game.game_type.time_limit,
+                    'min_players': game.game_type.min_players,
+                    'max_players': game.game_type.max_players,
+                    'num_players': getNumNonExitedPlayers(game.id)}
         lobbyInfo['games'].append(gameInfo)
     lobbyInfo['game_types'] = []
     game_types = getGameTypes()
     for game_type in game_types:
-        gameTypeInfo = {}
-        gameTypeInfo['id'] = game_type.id
-        gameTypeInfo['game_name'] = game_type.game_name
+        gameTypeInfo = {'id': game_type.id,
+                        'game_name': game_type.game_name}
         print(gameTypeInfo)
         lobbyInfo['game_types'].append(gameTypeInfo)
     return lobbyInfo
@@ -176,16 +177,17 @@ def getGameInfo(user, game):
 
 
 def getUserProfile(user):
-    info = {}
-    info['user_name'] = user.user_name
-    info['email'] = user.email
-    info['balance'] = user.balance
-    result = Player.query.join(User).with_entities(func.count(Player.result).label('wins')).filter(Player.result==2, Player.player_id==user.id).first()
+    info = {'user_name': user.user_name,
+            'email': user.email,
+            'balance': user.balance}
+    result = Player.query.join(User).with_entities(func.count(Player.result).label('wins')) \
+        .filter(Player.result == 2, Player.player_id == user.id).first()
     if result:
         info['wins'] = result.wins
     else:
         info['wins'] = 0
-    result = Player.query.join(User).with_entities(func.count(Player.result).label('losses')).filter(Player.result==3, User.id==user.id).group_by(User.id).first()
+    result = Player.query.join(User).with_entities(func.count(Player.result).label('losses')) \
+        .filter(Player.result == 3, User.id == user.id).group_by(User.id).first()
     if result:
         info['losses'] = result.losses
     else:
@@ -194,8 +196,8 @@ def getUserProfile(user):
 
 
 def getGame(game_id):
-    # get game info for game_id
-    # returns game info (game_id, game_status, pot, game_name, time_limit, min_players, max_players, ante, max_raise) in the form a dictionary
+    # get game info for game_id returns game info (game_id, game_status, pot, game_name, time_limit, min_players,
+    # max_players, ante, max_raise) in the form a dictionary
     game = Game.query.get(game_id)
     return game
 
@@ -223,7 +225,8 @@ def getMessages(game_id, player_id):
 
 
 def createNewGame(game_type_id):
-    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, round_num = 0, current_bet = 0, starting_turn = 0, current_turn=0)
+    new_game = Game(game_type_id=game_type_id, game_status=0, pot=0, round_num=0, current_bet=0, starting_turn=0,
+                    current_turn=0)
     db.session.add(new_game)
     db.session.commit()
     return new_game.id
@@ -234,13 +237,13 @@ def getNumPlayers(game_id):  # all players
     return num_players
 
 
-def getNumNonExitedPlayers(game_id):  
+def getNumNonExitedPlayers(game_id):
     num_players = User.query.filter_by(current_game_id=game_id).count()
     return num_players
 
 
 def getNumWaitingOrActivePlayers(game_id):  # player.result = 0 or 1
-    num_players = Player.query.filter(Player.game_id==game_id, or_(Player.result==0, Player.result==1)).count()
+    num_players = Player.query.filter(Player.game_id == game_id, or_(Player.result == 0, Player.result == 1)).count()
     return num_players
 
 
@@ -275,18 +278,18 @@ def removePlayerFromGame(user, game_id):
         game = getGame(game_id)
         if player and game:
             if game.game_status == 0:  # game waiting
-                player.result = 4 # set to exit without playing
+                player.result = 4  # set to exit without playing
             elif game.game_status == 1:  # game playing
                 if player.result == 0:  # player is observer in playing game
-                    player.result = 4 # set to exit without playing
-                elif player.result == 1: # player was playing and exited
-                    player.result = 3 # set to loss
-                else: # player already lost/won
+                    player.result = 4  # set to exit without playing
+                elif player.result == 1:  # player was playing and exited
+                    player.result = 3  # set to loss
+                else:  # player already lost/won
                     pass
             elif game.game_status == 2:  # game completed
                 if player.result == 0:  # player was observer only
                     player.result = 4
-                else: # player already won/lost/exited
+                else:  # player already won/lost/exited
                     pass
             db.session.commit()
             # update users.current_game_id to Null
@@ -384,7 +387,7 @@ def advanceTurn(game_id):
     t = (game.current_turn % num_total_players) + 1
     found = False
     while found == False:  # look for next active player
-        print("t=",t)
+        print("t=", t)
         player = Player.query.filter_by(game_id=game_id, turn=t).first()
         if player:
             if player.result == 1:
@@ -417,7 +420,7 @@ def makeBet(user, game, amount):
     return
 
 
-def isUserTurn(user,game):
+def isUserTurn(user, game):
     player = Player.query.filter_by(game_id=game.id, player_id=user.id).first()
     if player.turn == game.current_turn:
         return True
@@ -462,18 +465,18 @@ def gameLeave(user):
     game = getGame(user.current_game_id)
     if game:
         if game.game_status == 0:  # game waiting
-            player.result = 4 # set to exit without playing
+            player.result = 4  # set to exit without playing
         elif game.game_status == 1:  # game playing
             if player.result == 0:  # player is observer in playing game
-                player.result = 4 # set to exit without playing
-            elif player.result == 1: # player was playing and exited
-                player.result = 3 # set to loss
-            else: # player already lost/won
+                player.result = 4  # set to exit without playing
+            elif player.result == 1:  # player was playing and exited
+                player.result = 3  # set to loss
+            else:  # player already lost/won
                 pass
         elif game.game_status == 2:  # game completed
             if player.result == 0 or player.result == 1:  # player was observer only
                 player.result = 4
-            else: # player already won/lost/exited
+            else:  # player already won/lost/exited
                 pass
         db.session.commit()
     user.current_game_id = None
@@ -517,10 +520,11 @@ def gameMessage(user, game_id, message_content):
     db.session.commit()
     return new_message
 
+
 def gameStartNewGame(user, game_id):
     print(user.user_name, ": START NEW GAME")
     previous_game = Game.query.get(game_id)
-    players = Player.query.filter(Player.game_id==game_id, Player.result != 4).all()
+    players = Player.query.filter(Player.game_id == game_id, Player.result != 4).all()
     new_game_id = createNewGame(previous_game.game_type_id)
     num_players = 0
     for player in players:
@@ -536,6 +540,7 @@ def gameStartNewGame(user, game_id):
         return True
     else:
         return False
+
 
 def gameEnd(game_id):
     # change game_status to 2 = completed
@@ -597,22 +602,22 @@ def scoreCard(card):
     score = 1 + card.number / 10
     return score
 
+
 def getTopWinLossRecords(num_of_players):
     results = Player.query.join(User).with_entities( \
         User.user_name.label('user_name'), \
-        func.count(Player.result).filter(Player.result==2).label('wins'), \
-        func.count(Player.result).filter(Player.result==3).label('losses') \
-        ).filter(or_(Player.result==2,Player.result==3)).group_by(User.user_name) \
-        .order_by((1.0*func.count(Player.result).filter(Player.result==2)/ \
-        (func.count(Player.result).filter(Player.result==3)+
-         func.count(Player.result).filter(Player.result==2))).desc()
-        ).limit(10).all()
+        func.count(Player.result).filter(Player.result == 2).label('wins'), \
+        func.count(Player.result).filter(Player.result == 3).label('losses') \
+        ).filter(or_(Player.result == 2, Player.result == 3)).group_by(User.user_name) \
+        .order_by((1.0 * func.count(Player.result).filter(Player.result == 2) / \
+                   (func.count(Player.result).filter(Player.result == 3) +
+                    func.count(Player.result).filter(Player.result == 2))).desc()
+                  ).limit(10).all()
     records = []
     for result in results:
-        entry = {}
-        entry['user_name'] = result.user_name
-        entry['wins'] = result.wins
-        entry['losses'] = result.losses
+        entry = {'user_name': result.user_name,
+                 'wins': result.wins,
+                 'losses': result.losses}
         records.append(entry)
     return records
 
@@ -620,7 +625,3 @@ def getTopWinLossRecords(num_of_players):
 def getTopBettors(num_of_players):
     topBettors = User.query.order_by(User.balance.desc()).limit(10)
     return topBettors
-
-def rules():
-    print('Welcome')
-

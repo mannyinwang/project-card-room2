@@ -15,6 +15,8 @@ def flush(cards):
 
 def straight(cards):
     number = [card.number for card in cards]
+    for card in cards:
+        number = card.number
     number.sort()
     if not len(set(number)) == 5:
         return False
