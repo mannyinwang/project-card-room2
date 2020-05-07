@@ -1,24 +1,27 @@
-from models import Card
+# from models import Card
 
 
 def flush(cards):
-    suits = [card.suit for card in cards]
-    if len(set(suits)) == 1:
+    suits = []
+    for card in cards:
+        if card.suit not in suits:
+            suits.append(card.suit)
+    if len(suits) == 1:
         hc = 0
         for card in cards:
             if card.number > hc:
                 hc = card.number
         return hc
-
     return False
 
 
 def straight(cards):
-    number = [card.number for card in cards]
+    number = []
     for card in cards:
-        number = card.number
+        if card.number not in number:
+            number.append(card.number)
     number.sort()
-    if not len(set(number)) == 5:
+    if not len(number) == 5:
         return False
     if number[4] == 14 and number[3] == 5 and number[2] == 4 and number[1] == 3 and number[0] == 2:
         return 5
@@ -35,7 +38,9 @@ def straight(cards):
 
 
 def fourKind(cards):
-    number = [card.number for card in cards]
+    number = []
+    for card in cards:
+        number.append(card.number)
     for value in number:
         if number.count(value) == 4:
             return value
@@ -43,8 +48,9 @@ def fourKind(cards):
 
 
 def threeKind(cards):
-    triple = []
-    number = [card.number for card in cards]
+    number = []
+    for card in cards:
+        number.append(card.number)
     for value in number:
         if number.count(value) == 3:
             return value
@@ -53,7 +59,9 @@ def threeKind(cards):
 
 def pairs(cards):
     pairs = []
-    number = [card.number for card in cards]
+    number = []
+    for card in cards:
+        number.append(card.number)
     for value in number:
         if number.count(value) == 2 and value not in pairs:
             pairs.append(value)
@@ -62,32 +70,32 @@ def pairs(cards):
 
 def twoPairs(cards):
     pair = pairs(cards)
-    if pair.count() == 2:
-        return max(pair[0].number, pair[1].number)
+    if len(pair) == 2:
+        return max(pair[0], pair[1])
     else:
         return False
 
 
 def onePair(cards):
     pair = pairs(cards)
-    if pair.count() == 1:
-        return max(pair[0].number)
+    if len(pair) == 1:
+        return pair[0]
     else:
         return False
 
 
 def highcard(cards):
-    # [card.number for card in cards]
     highcard = None
     for card in cards:
         if highcard is None:
-            highcard = card
-        elif highcard.number < card.number:
-            highcard = card
+            highcard = card.number
+        elif card.number > highcard:
+            highcard = card.number
     return highcard
 
 
 def pokerScore(cards):
+    print(cards)
     is_straight = straight(cards)
     is_flush = flush(cards)
     is_one_pair = onePair(cards)
@@ -111,19 +119,19 @@ def pokerScore(cards):
     elif is_three_kind and is_one_pair:
         print("Full House!")
         return 7 + is_three_kind / 100.0
-        # Flush
+    # Flush
     elif is_flush:
         print("Flush!")
         return 6 + is_flush / 100.0
-        # Straight
+    # Straight
     elif is_straight:
         print("Straight!")
         return 5 + is_straight / 100.0
-        # 3 of a kind
+    # 3 of a kind
     elif is_three_kind:
         print("Three of a Kind!")
         return 4 + is_three_kind / 100.0
-        # 2 pair
+    # 2 pair
     elif is_two_pairs:
         print("Two Pairs!")
         return 3 + is_two_pairs / 100.0
@@ -131,4 +139,39 @@ def pokerScore(cards):
         print("Pair!")
         return 2 + is_one_pair / 100.0
     else:
+        print("High Card")
         return 1 + highcard(cards) / 100
+
+
+# hand1 = [{'number': 2,'suit': 1},{'number': 2,'suit': 2},{'number': 2,'suit': 3}, {'number': 2,'suit': 4}, {'number': 3,'suit': 1}]
+# # print(hand[0])
+# # print(hand[0].number)
+# # print(flush(hand))
+# hand2 = [{'number': 2,'suit': 1},{'number': 3,'suit': 1},{'number': 4,'suit': 1}, {'number': 5,'suit': 1}, {'number': 6,'suit': 1}]
+# hand3 = [{'number': 2,'suit': 1},{'number': 3,'suit': 1},{'number': 4,'suit': 1}, {'number': 5,'suit': 1}, {'number': 14,'suit': 1}]
+# hand4 = [{'number': 2,'suit': 2},{'number': 2,'suit': 1},{'number': 4,'suit': 4}, {'number': 4,'suit': 1}, {'number': 14,'suit': 1}]
+# hand5 = [{'number': 2,'suit': 2},{'number': 3,'suit': 1},{'number': 4,'suit': 3}, {'number': 14,'suit': 1}, {'number': 14,'suit': 1}]
+# hand6 = [{'number': 2,'suit': 3},{'number': 14,'suit': 1},{'number': 4,'suit': 2}, {'number': 14,'suit': 1}, {'number': 14,'suit': 1}]
+# hand7 = [{'number': 2,'suit': 3},{'number': 13,'suit': 1},{'number': 4,'suit': 2}, {'number': 10,'suit': 1}, {'number': 14,'suit': 1}]
+# # print(fourKind(hand1))
+# # print(flush(hand1))
+# # print(fourKind(hand2))
+# # print(flush(hand2))
+# # print(straight(hand1))
+# # print(straight(hand2))
+# # print(straight(hand3))
+# # print(onePair(hand4))
+# # print(onePair(hand5))
+# # print(twoPairs(hand4))
+# # print(twoPairs(hand5))
+# # print(threeKind(hand5))
+# # print(threeKind(hand6))
+# # print(highcard(hand1))
+# # print(highcard(hand6))
+# print(hand1, pokerScore(hand1))
+# print(hand2, pokerScore(hand2))
+# print(hand3, pokerScore(hand3))
+# print(hand4, pokerScore(hand4))
+# print(hand5, pokerScore(hand5))
+# print(hand6, pokerScore(hand6))
+# print(hand7, pokerScore(hand7))

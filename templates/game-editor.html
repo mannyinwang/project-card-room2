@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Card Room</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- Iconic icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container bg-white">
+        <div class="row justify-content-between mt-4 mb-2">
+            <!-- Title -->
+            <div class="col-auto">
+                <h2>Game Editor</h2>
+                {% if user %}
+                <h6>Welcome {{user.user_name}}!</h6>
+                {% endif %}
+            </div>
+            <!-- Navigation actions -->
+            <div class="col-auto">
+                <a href="#" class="col-auto btn btn-secondary btn-sm mx-1 mt-1 mb-3">Game Editor</a>
+                <a href="/lobby" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Lobby</a>
+                <a href="/leaderboard" class="inactive col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Leader Board</a>
+                <a href="/user-profile" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">User Profile</a>
+                <a href="/logout-action" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Logout</a>
+            </div>
+        </div>
+
+        <div class="row pt-4">
+            <!-- Top Records -->
+            <div class="col-12 bg-primary text-white border border-dark rounded-lg p-2 mx-0">
+                <h4 class="pb-2 text-center">Game Types</h4>
+                {% if game_types %}
+                    {% for game_type in game_types %}
+                        {{game_type.game_name}}
+                            <td>{{game_type.min_players}}</td>
+                            <td>{{game_type.max_players}}</td>
+                            <td>{{game_type.ante}}</td>
+                            <td>{{game_type.max_raise}}</td>
+                            <!-- <td>{{game_type.time_limit}}</td> -->
+                            <td>{{game_type.rounds}}</td>
+                            {% if user.user_name == "admin" %}
+                            <td>
+                                <a href="/family-setup-shopping-categories-remove/{{category.id}}"><span class="oi oi-x text-danger" title="remove" aria-hidden="true"></span></a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </table>
+                {% else %}
+                    <h6>No Game Types</h6>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
