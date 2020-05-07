@@ -4,6 +4,7 @@ from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
 from datetime import datetime, timedelta
 from score import pokerScore
+import time
 starting_balance = 10000
 
 
@@ -432,6 +433,7 @@ def dealRound(game_id):
     game_round = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num).first()
     for player in players:
         dealCard(game_id, player.player_id, game_round.face_up)
+    # time.sleep(2)
     return game_round.betting
 
 

@@ -94,7 +94,7 @@ def highcard(cards):
     return highcard
 
 
-def pokerScore(cards):
+def poker5CardScore(cards):
     print(cards)
     is_straight = straight(cards)
     is_flush = flush(cards)
@@ -141,6 +141,36 @@ def pokerScore(cards):
     else:
         print("High Card")
         return 1 + highcard(cards) / 100
+
+
+def poker6CardScore(cards):
+    score = 0
+    for i in range(len(cards)):
+        new_cards = cards.copy()
+        new_cards.pop(i)
+        new_score = poker5CardScore(new_cards)
+        if new_score > score:
+            score = new_score
+    return score
+
+
+def poker7CardScore(cards):
+    score = 0
+    for i in range(len(cards)):
+        new_cards = cards.copy()
+        new_cards.pop(i)
+        new_score = poker6CardScore(new_cards)
+        if new_score > score:
+            score = new_score
+    return score
+
+
+def pokerScore(cards):
+    if len(cards) == 5:
+        score = poker5CardScore(cards)
+    elif len(cards) == 7:
+        score = poker7CardScore(cards)
+    return score
 
 
 # hand1 = [{'number': 2,'suit': 1},{'number': 2,'suit': 2},{'number': 2,'suit': 3}, {'number': 2,'suit': 4}, {'number': 3,'suit': 1}]
