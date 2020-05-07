@@ -3,7 +3,7 @@ from config import bcrypt, re, EMAIL_REGEX, PWD_REGEX, socketio, db, or_, func
 from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
 from datetime import datetime, timedelta
-
+from score import pokerScore
 starting_balance = 10000
 
 
@@ -595,16 +595,32 @@ def gameEnd(game_id):
         if winner:
             gameDeclareWinner(winner)
         return
-    else:  # NEED TO FIX THIS TO DETERMINE BEST HAND
-        winner = Player.query.filter_by(game_id=game_id, result=1).first()
-        if winner:
-            gameDeclareWinner(winner)
+    else:
+        gameShowHands(game_id)
         players = Player.query.filter_by(game_id=game_id, result=1)
+        high_score = 0
+        for player in players:
+            cards = Card.query.filter_by(game_id=game_id, player_id=player.player_id).all()
+            score = pokerScore(cards)
+            if score > high_score:
+                high_score = score
+                winner = player
+        gameDeclareWinner(winner)
         for player in players:
             if player.id != winner.id:
                 gameDeclareLoser(player)
     return
 
+
+def gameShowHands(game_id):
+    players = Player.query.filter_by(game_id=game_id, result=1)
+    for player in players:
+        cards = Card.query.filter_by(game_id=game_id, player_id=player.player_id)
+        for card in cards:
+            card.face_up = 1
+    db.session.commit()
+    return
+    
 
 def gameDeclareWinner(player):
     player.result = 2
@@ -623,24 +639,6 @@ def gameDeclareLoser(player):
     db.session.commit()
     return
 
-
-def gameShowHands(game_id):
-    return
-
-
-def scoreHand(cards):
-    num_cards = len(cards)
-    if num_cards == 1:
-        score = 1 + cards[0].number / 10
-    elif num_cards == 2:
-        if cards[0].number == cards[1].number:  # pair
-            score = 2
-    return score
-
-
-def scoreCard(card):
-    score = 1 + card.number / 10
-    return score
 
 def getTopWinLossRecords(num_of_players):
     results = Player.query.join(User).with_entities( \
@@ -666,6 +664,5 @@ def getTopBettors(num_of_players):
     topBettors = User.query.order_by(User.balance.desc()).limit(10)
     return topBettors
 
-def rules():
-    print('Welcome')
+
 
