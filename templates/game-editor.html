@@ -38,22 +38,8 @@
             <div class="col-12 bg-primary text-white border border-dark rounded-lg p-2 mx-0">
                 <h4 class="pb-2 text-center">Game Types</h4>
                 {% if game_types %}
-                    <table class="bg-light table table-fixed text-dark text-center table-hover">
-                        <tr scope="row">
-                            <th>Name</th>
-                            <th>Min Players</th>
-                            <th>Max Players</th>
-                            <th>Ante</th>
-                            <th>Max Raise</th>
-                            <!-- <th>Time_limit</th> -->
-                            <th>Rounds</th>
-                            {% if user.user_name == "admin" %}
-                            <th>Actions</th>
-                            {% endif %}
-                        </tr>
                     {% for game_type in game_types %}
-                        <tr scope="row">
-                            <td>{{game_type.game_name}}</td>
+                        {{game_type.game_name}}
                             <td>{{game_type.min_players}}</td>
                             <td>{{game_type.max_players}}</td>
                             <td>{{game_type.ante}}</td>
