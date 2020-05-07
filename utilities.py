@@ -136,6 +136,19 @@ def getLobbyInfo(user):
     return lobbyInfo
 
 
+def convertCardNumToChar(number):
+    if number == 11:
+        return 'J'
+    elif number == 12:
+        return 'Q'
+    elif number == 13:
+        return 'K'
+    elif number == 14:
+        return 'A'
+    else:
+        return number
+
+
 def getGameInfo(user, game):
     cards = getCards(game.id, user.id)
     gameInfo = {}
@@ -177,7 +190,7 @@ def getGameInfo(user, game):
                 cardInfo = {}
                 cardInfo['face_up'] = card.face_up
                 if card.face_up:
-                    cardInfo['number'] = card.number
+                    cardInfo['number'] = convertCardNumToChar(card.number)
                     cardInfo['suit'] = card.suit
                 else:
                     cardInfo['number'] = 0
@@ -196,7 +209,7 @@ def getGameInfo(user, game):
     cards = Card.query.filter_by(player_id=user.id, game_id=game.id).order_by(Card.updated_at)
     for card in cards:
         cardInfo = {}
-        cardInfo['number'] = card.number
+        cardInfo['number'] = convertCardNumToChar(card.number)
         cardInfo['suit'] = card.suit
         cardInfo['face_up'] = card.face_up
         gameInfo['cards'].append(cardInfo)

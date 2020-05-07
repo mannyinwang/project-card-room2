@@ -9,6 +9,9 @@
     <!-- Bootstrap core CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
+    <!-- Font Awesome CSS for card suit icons -->
+    <script src="https://kit.fontawesome.com/1ee4a5668b.js" crossorigin="anonymous"></script>
+
     <!-- SocketIO connection to receive notifications of changes by another user to trigger reload of page -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>   
@@ -78,13 +81,13 @@
                                 <div class="row mt-2 mx-0 px-0 justify-content-end" style="height: 75px">
                             {% endif %}
                             {% if not card.face_up %}
-                                <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0"></div>
+                                <div class="col-3 bg-secondary text-white border border-dark rounded-lg text-center mx-0 px-0"></div>
                             {% else %}
                                 <div class="col-3 bg-light text-dark border border-secondary rounded-lg text-center mx-0 px-0">
-                                {% if card.suit == 1 %}{{card.number}}C
-                                {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
-                                {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
-                                {% else %}{{card.number}}S
+                                    {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
+                                    {% elif card.suit == 2 %}{{card.number}}<i class="fas fa-diamond text-danger"></i>
+                                    {% elif card.suit == 3 %}{{card.number}}<i class="fas fa-heart text-danger"></i>
+                                    {% else %}{{card.number}}<i class="fas fa-spade text-dark"></i>
                                 {% endif %}
                                 </div> 
                             {% endif %}
@@ -123,11 +126,11 @@
                                 {% if not card.face_up %}
                                     <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0"></div>
                                 {% else %}
-                                    <div class="col-3 bg-light text-dark border border-secondary rounded-lg text-center mx-0 px-0">
-                                    {% if card.suit == 1 %}{{card.number}}C
-                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
-                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
-                                    {% else %}{{card.number}}S
+                                    <div class="col-3 bg-light text-dark border border-dark rounded-lg text-center mx-0 px-0">
+                                        {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
+                                        {% elif card.suit == 2 %}{{card.number}}<i class="fas fa-diamond text-danger"></i>
+                                        {% elif card.suit == 3 %}{{card.number}}<i class="fas fa-heart text-danger"></i>
+                                        {% else %}{{card.number}}<i class="fas fa-spade text-dark"></i>
                                     {% endif %}
                                     </div> 
                                 {% endif %}
@@ -154,13 +157,13 @@
                                     <div class="row mt-2 mx-0 px-0 justify-content-end" style="height: 75px">
                                 {% endif %}
                                 {% if not card.face_up %}
-                                    <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0"></div>
+                                    <div class="col-3 bg-secondary text-white border border-dark rounded-lg text-center mx-0 px-0"></div>
                                 {% else %}
                                     <div class="col-3 bg-light text-dark border border-secondary rounded-lg text-center mx-0 px-0">
-                                    {% if card.suit == 1 %}{{card.number}}C
-                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
-                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
-                                    {% else %}{{card.number}}S
+                                        {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
+                                        {% elif card.suit == 2 %}{{card.number}}<i class="fas fa-diamond text-danger"></i>
+                                        {% elif card.suit == 3 %}{{card.number}}<i class="fas fa-heart text-danger"></i>
+                                        {% else %}{{card.number}}<i class="fas fa-spade text-dark"></i>
                                     {% endif %}
                                     </div> 
                                 {% endif %}
@@ -171,13 +174,13 @@
                             <div class="row mt-2 mx-0 px-0 justify-content-end" style="height: 75px">
                             {% for card in players[3].cards %}
                                 {% if not card.face_up %}
-                                    <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0"></div>
+                                    <div class="col-3 bg-secondary text-white border border-dark rounded-lg text-center mx-0 px-0"></div>
                                 {% else %}
                                     <div class="col-3 bg-light text-dark border border-secondary rounded-lg text-center mx-0 px-0">
-                                    {% if card.suit == 1 %}{{card.number}}C
-                                    {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
-                                    {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
-                                    {% else %}{{card.number}}S
+                                        {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
+                                        {% elif card.suit == 2 %}{{card.number}}<i class="fas fa-diamond text-danger"></i>
+                                        {% elif card.suit == 3 %}{{card.number}}<i class="fas fa-heart text-danger"></i>
+                                        {% else %}{{card.number}}<i class="fas fa-spade text-dark"></i>
                                     {% endif %}
                                     </div> 
                                 {% endif %}
@@ -214,14 +217,14 @@
                                 <div class="row mt-2 mx-0 px-0" style="height: 75px">
                             {% endif %}
                             {% if not card.face_up %}
-                            <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0">
+                            <div class="col-3 bg-secondary text-white border border-dark rounded-lg text-center mx-0 px-0">
                             {% else %}
                             <div class="col-3 bg-light text-dark border border-secondary rounded-lg text-center mx-0 px-0">
                             {% endif %}
-                            {% if card.suit == 1 %}{{card.number}}C
-                            {% elif card.suit == 2 %}<span class="text-danger">{{card.number}}D</span>
-                            {% elif card.suit == 3 %}<span class="text-danger">{{card.number}}H</span>
-                            {% else %}{{card.number}}S
+                            {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
+                            {% elif card.suit == 2 %}{{card.number}}<i class="fas fa-diamond text-danger"></i>
+                            {% elif card.suit == 3 %}{{card.number}}<i class="fas fa-heart text-danger"></i>
+                            {% else %}{{card.number}}<i class="fas fa-spade text-dark"></i>
                             {% endif %}
                             </div> 
                         {% endfor %}

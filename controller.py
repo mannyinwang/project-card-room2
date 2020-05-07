@@ -106,7 +106,7 @@ def card_table():
                         num_rounds = getNumRounds(game_id)
                         while not game.betting and not betting_round and game.round_num < num_rounds:
                             betting_round = dealRound(game_id)  # deal a round of cards
-                            socketio.emit(str(game_id) + ": card-table update", broadcast=True) # notify other players
+                            socketio.emit(str(game_id) + ": card-table update") # notify other players
                         if not game.betting and game.round_num >= num_rounds:  # done with game
                             if game.game_status != 2:
                                 gameEnd(game_id)
