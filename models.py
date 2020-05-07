@@ -1,5 +1,6 @@
 from config import db, func
 
+
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -8,25 +9,34 @@ class User(db.Model):
     password = db.Column(db.String(255))
     balance = db.Column(db.Integer)
     photo = db.Column(db.BLOB)
+<<<<<<< HEAD
     current_game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)  # is null if not currently in a game
+=======
+    wins = db.Column(db.Integer)
+    losses = db.Column(db.Integer)
+    current_game_id = db.Column(db.Integer, db.ForeignKey("games.id"),
+                                nullable=True)  # is null if not currently in a game
+>>>>>>> b585cbb56fdf17c41ac065fb25edcadac4719520
     current_game = db.relationship("Game", foreign_keys=[current_game_id], backref="game_users")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
+
 class Game(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True) 
+    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True)
     game_type = db.relationship("GameType", foreign_keys=[game_type_id], backref="gametype_games")
     game_status = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: completed
     pot = db.Column(db.Integer)
     current_turn = db.Column(db.Integer)
     starting_turn = db.Column(db.Integer)
     current_bet = db.Column(db.Integer)
-    betting = db.Column(db.Boolean, unique=False, default=False) # 0: done with betting round, # 1: betting round
+    betting = db.Column(db.Boolean, unique=False, default=False)  # 0: done with betting round, # 1: betting round
     round_num = db.Column(db.Integer)  # number of rounds of cards dealt
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
 
 class GameType(db.Model):
     __tablename__ = "game_types"
@@ -41,16 +51,20 @@ class GameType(db.Model):
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
 
+
 class GameRound(db.Model):
     __tablename__ = "game_rounds"
     id = db.Column(db.Integer, primary_key=True)
     round_num = db.Column(db.Integer)
-    face_up = db.Column(db.Boolean, unique=False, default=False)  # false: round of cards is dealt face down, true: face up
-    betting = db.Column(db.Boolean, unique=False, default=False)  # false: no betting after round dealt, true: betting after round dealt
-    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True) 
+    face_up = db.Column(db.Boolean, unique=False,
+                        default=False)  # false: round of cards is dealt face down, true: face up
+    betting = db.Column(db.Boolean, unique=False,
+                        default=False)  # false: no betting after round dealt, true: betting after round dealt
+    game_type_id = db.Column(db.Integer, db.ForeignKey("game_types.id"), nullable=True)
     game_type = db.relationship("GameType", back_populates="rounds")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
 
 class Player(db.Model):
     __tablename__ = "players"
@@ -58,14 +72,15 @@ class Player(db.Model):
     total_bet = db.Column(db.Integer)
     result = db.Column(db.Integer)  # 0: waiting, 1: playing, 2: win, 3: loss, 4: exited before playing
     turn = db.Column(db.Integer)  # position of player at the table
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)  # game id
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_players")
-    player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    player_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # player id
     player = db.relationship("User", foreign_keys=[player_id], backref="user_players")
     cards = db.relationship("Card", back_populates="player")
     messages = db.relationship("Message", back_populates="player")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
 
 class Message(db.Model):
     __tablename__ = "messages"
@@ -73,10 +88,12 @@ class Message(db.Model):
     message = db.Column(db.String(255))
     player_id = db.Column(db.Integer, db.ForeignKey("players.player_id"), nullable=True)
     player = db.relationship("Player", foreign_keys=[player_id], back_populates="messages")
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)  # is null if not in a game while sending message
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"),
+                        nullable=True)  # is null if not in a game while sending message
     game = db.relationship("Game", foreign_keys=[game_id], backref="game_messages")
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+
 
 class Card(db.Model):
     __tablename__ = "cards"
