@@ -104,18 +104,23 @@ def card_table():
                     if not game.betting:  # betting round is completed
                         betting_round = False
                         num_rounds = getNumRounds(game_id)
-                        while not game.betting and not betting_round and game.round_num < num_rounds:
-                            betting_round = dealRound(game_id)  # deal a round of cards
-                            socketio.emit(str(game_id) + ": card-table update") # notify other players
-                        if not game.betting and game.round_num >= num_rounds:  # done with game
+                        if not game.betting and not betting_round and game.round_num < num_rounds:
+                            while not game.betting and not betting_round and game.round_num < num_rounds:
+                                betting_round = dealRound(game_id)  # deal a round of cards
+                                time.sleep(0.3) # let data load before updating all pages
+                                socketio.emit("lobby update") # notify other players
+                                socketio.emit(str(game_id) + ": card-table update") # notify other players
+                        elif not game.betting and game.round_num >= num_rounds:  # done with game
                             if game.game_status != 2:
                                 gameEnd(game_id)
+                                time.sleep(0.3)
                                 socketio.emit("lobby update") # notify other players
                                 socketio.emit("leaderboard update")
                                 socketio.emit(str(game_id) + ": card-table update") # notify other players
                         else: # start betting round
                             gameStartBettingRound(user, game_id)
                             socketio.emit(str(game_id) + ": card-table update") # notify other players
+                time.sleep(0.3)  # important to let data load into database from other actions before getting data and rendering
                 gameInfo = getGameInfo(user, game)
                 return render_template('card-table.html', user = gameInfo['user'], game = gameInfo['game'], players = gameInfo['players'], cards = gameInfo['cards'])                 
             else:
@@ -174,6 +179,7 @@ def card_table_raise():
                         if raise_amount:
                             if isUserTurn(user,game):
                                 gameRaise(user, game.id, int(raise_amount))
+                                socketio.emit("lobby update") # notify of update to pot
                                 socketio.emit(str(game.id) + ": card-table update") # notify other players
                     return redirect('/card-table')
     return redirect('/lobby')

@@ -9,6 +9,9 @@
     <!-- Bootstrap core CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
+    <!-- Added styling for card tables -->
+    <!-- <link rel="stylesheet" type="text/css" href="/static/css/card-table.css"> -->
+
     <!-- SocketIO connection to receive notifications of changes by another user to trigger reload of page -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>   
@@ -29,7 +32,7 @@
             </div>
             <!-- Navigation actions -->
             <div class="col-auto">
-                <a href="#" class="inactive col-auto btn btn-secondary btn-sm mx-1 mt-1 mb-3">Lobby</a>
+                <a href="#" class="inactive col-auto btn btn-secondary btn-sm mx-1 mt-1 mb-3">The Card Room</a>
                 <a href="/leaderboard" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Leader Board</a>
                 <a href="/user-profile" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">User Profile</a>
                 <a href="/logout-action" class="col-auto btn btn-outline-dark btn-sm mx-1 mt-1 mb-3">Logout</a>
@@ -41,7 +44,7 @@
             <!-- <h4 class="col-12 pb-2">Active Games</h4> -->
             {% if games %}
                 {% for game in games %}
-                <div class="col-5 bg-success border border-secondary rounded-lg text-white text-center mx-0 px-0 mb-4 mt-2 pt-4" style="height: 220px">
+                <div class="col-5 card-table bg-success border border-secondary rounded-lg text-white text-center mx-0 px-0 mb-4 mt-2 pt-4" style="height: 220px">
                     <!-- <h5>{{game.game_name}}</h5> -->
                     <div class="row mx-0 px-0 text-center">
                         <div class="col-2"></div>

@@ -9,6 +9,9 @@
     <!-- Bootstrap core CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
+    <!-- Added styling for card tables -->
+    <!-- <link rel="stylesheet" type="text/css" href="/static/css/card-table.css"> -->
+
     <!-- Font Awesome CSS for card suit icons -->
     <script src="https://kit.fontawesome.com/1ee4a5668b.js" crossorigin="anonymous"></script>
 
@@ -31,31 +34,14 @@
                 <h6>Welcome {{user.user_name}}!</h6>
             </div>
         </div>
-        <!-- Game info -->
-        <!-- <div class="row pt-2"> -->
-            <!-- <h4 class="row pb-2">Game Info</h4> -->
-            <!-- <p class="col-12">Game ID = {{game.id}}</p> -->
-            <!-- <h6 class="col-12">Max Raise = {{game.max_raise}}</h6> -->
-            <!-- <p class="col-12">Game Status = 
-                {% if game.game_status == 0 %}waiting
-                {% elif game.game_status == 1 %}playing
-                {% elif game.game_status == 2 %}completed
-                {% else: %}error
-                {% endif %}</p> -->
-            <!-- <p class="col-12">Round = {{game.round_num}}</p> -->
-            <!-- <p class="col-12">Time Limit = {{game.time_limit}}</h6> -->
-            <!-- <p class="col-12">Number of Players = {{game.num_players}}</h6> -->
-            <!-- <p class="col-12">Current Turn = {{game.current_turn}}</h6> -->
-            <!-- <p class="col-12">User Turn = {{user.turn}}</h6> -->
-        <!-- </div> -->
 
         <!-- Card Table -->
         <div class="container bg-success border border-secondary rounded-lg text-white text-center mx-0 p-3 my-4">
 
             <!-- Top Row of Card Table-->
-            <div class="row">
+            <div class="row" style="height: 175px">
                 <div class="col-4"> 
-                    <div class="row mt-2 mx-0 px-0" style="height: 50px"></div>
+                    <div class="row mt-2 mx-0 px-0" style="height: 60px"></div>
                     <div class="row mx-0"><h5>{{players[1].user_name}}</h5></div>
                     {% if players[1].total_bet %}
                         <div class="row mx-0">{{players[1].total_bet}} / {{players[1].balance}}</div>
@@ -65,9 +51,9 @@
                     {% elif players[1].result == 1 %}
                         <div class="row bg-primary text-white justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[1].message}}</div>
                     {% elif players[1].result == 2: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">winner</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[1].message}}</div>
                     {% elif players[1].result == 3: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">lost</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[1].message}}</div>
                     {% else: %}
                         <div class="row mx-0"></div>
                     {% endif %}
@@ -104,9 +90,9 @@
                         {% elif players[2].result == 1 %}
                             <div class="row bg-primary text-white justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[2].message}}</div>
                         {% elif players[2].result == 2: %}
-                            <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">winner</div>
+                            <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[2].message}}</div>
                         {% elif players[2].result == 3: %}
-                            <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">lost</div>
+                            <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[2].message}}</div>
                         {% else: %}
                             <div class="row mx-0"></div>
                         {% endif %}
@@ -114,7 +100,7 @@
             </div>
 
             <!-- Middle Row of Card Table-->
-            <div class="row">
+            <div class="row" style="height: 175px">
                 <!-- Player at Left Position -->
                 <div class="col-4"> 
                         <div class="row mt-2 mx-0 px-0" style="height: 75px">
@@ -124,7 +110,7 @@
                                     <div class="row mt-2 mx-0 px-0" style="height: 75px">
                                 {% endif %}
                                 {% if not card.face_up %}
-                                    <div class="col-3 bg-secondary text-white border border-secondary rounded-lg text-center mx-0 px-0"></div>
+                                    <div class="col-3 bg-secondary text-white border border-dark rounded-lg text-center mx-0 px-0"></div>
                                 {% else %}
                                     <div class="col-3 bg-light text-dark border border-dark rounded-lg text-center mx-0 px-0">
                                         {% if card.suit == 1 %}{{card.number}}<i class="fas fa-club text-dark"></i>
@@ -191,7 +177,7 @@
             </div>
 
             <!-- Bottom Row of Card Table -->
-            <div class="row">
+            <div class="row" style="height: 175px">
                 <!-- Player at Bottom Position, i.e. User -->
                 <div class="col-4">
                     <div class="row mt-2 mx-0 px-0" style="height: 50px"></div>
@@ -202,9 +188,9 @@
                     {% elif user.result == 1 %}
                         <div class="row bg-primary text-white justify-content-center rounded-pill mx-0 mt-1 px-2">{{user.message}}</div>
                     {% elif user.result == 2: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">winner</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{user.message}}</div>
                     {% elif user.result == 3: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">lost</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{user.message}}</div>
                     {% else: %}
                         <div class="row mx-0 justify-content-end"></div>
                     {% endif %}
@@ -240,9 +226,9 @@
                     {% elif players[3].result == 1 %}
                         <div class="row bg-primary text-white justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[3].message}}</div>
                     {% elif players[3].result == 2: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">winner</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[3].message}}</div>
                     {% elif players[3].result == 3: %}
-                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">lost</div>
+                        <div class="row bg-warning text-dark justify-content-center rounded-pill mx-0 mt-1 px-2">{{players[3].message}}</div>
                     {% else: %}
                         <div class="row mx-0 justify-content-end"></div>
                     {% endif %}
@@ -302,48 +288,3 @@
     </div> <!-- End container-->
 </body>
 </html>
-
-                <!--<tbody>
-                    <tr scope='row'>
-                        <th>Player</th>
-                        <th>Balance</th>
-                        <th>Total Bet</th>
-                        <th>Turn</th>
-                        <th>Result</th>
-                        <th>Cards</th>
-                        <th>Message</th>
-                    </tr>
-                    {% for player in players %}
-                        <tr scope='row'>
-                            <td>{{player.user_name}}</td>
-                            <td>{{player.balance}}</td>
-                            <td>{{player.total_bet}}</td>
-                            <td>{{player.turn}}</td>
-                            <td>
-                                {% if player.result == 0 %}waiting
-                                {% elif player.result == 1 %}playing
-                                {% elif player.result == 2: %}winner
-                                {% elif player.result == 3: %}loser
-                                {% else: %}exited
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% for card in player.cards %}
-                                    {% if card.face_up %}
-                                        {% if card.suit == 1 %}{{card.number}}C
-                                        {% elif card.suit == 2 %}{{card.number}}D
-                                        {% elif card.suit == 3 %}{{card.number}}H
-                                        {% else %}{{card.number}}S
-                                        {% endif %}
-                                    {% else %} down
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td>{% if player.message %}
-                                    {{player.message}}
-                                {% endif %}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>-->

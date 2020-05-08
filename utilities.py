@@ -4,6 +4,7 @@ from random import seed, randint, shuffle
 from models import User, Game, Player, Message, Card, GameType, GameRound
 from datetime import datetime, timedelta
 from score import pokerScore
+import time
 starting_balance = 10000
 
 
@@ -425,9 +426,9 @@ def dealRound(game_id):
     # returns True if betting after this round is dealt, False otherwise
     players = Player.query.filter_by(game_id=game_id, result=1)
     game = Game.query.get(game_id)
+    game.betting = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num+1).first().betting
     game.round_num = game.round_num + 1
     game.updated_at = datetime.now()
-    # game.betting = 1
     db.session.commit()
     game_round = GameRound.query.filter_by(game_type_id=game.game_type_id, round_num=game.round_num).first()
     for player in players:
@@ -601,27 +602,29 @@ def gameEnd(game_id):
     game.game_status = 2  # set game to be completed
     game.updated_at = datetime.now()
     db.session.commit()
+    time.sleep(0.5)  # let all other message register before moving on
     # if 1 remaining player, that player is the winner
     # if >1 remaining player, compare hands to determine the winner and losers
     if getNumActivePlayers(game_id) == 1:
         winner = Player.query.filter_by(game_id=game_id, result=1).first()
         if winner:
-            gameDeclareWinner(winner)
+            gameDeclareWinner(winner, "")
         return
     else:
+        message = {}
         gameShowHands(game_id)
         players = Player.query.filter_by(game_id=game_id, result=1)
         high_score = 0
         for player in players:
             cards = Card.query.filter_by(game_id=game_id, player_id=player.player_id).all()
-            score = pokerScore(cards)
+            score, message[player.player_id] = pokerScore(cards)
             if score > high_score:
                 high_score = score
                 winner = player
-        gameDeclareWinner(winner)
+        gameDeclareWinner(winner, message[winner.player_id])
         for player in players:
             if player.id != winner.id:
-                gameDeclareLoser(player)
+                gameDeclareLoser(player, message[player.player_id])
     return
 
 
@@ -635,21 +638,29 @@ def gameShowHands(game_id):
     return
     
 
-def gameDeclareWinner(player):
+def gameDeclareWinner(player, message):
     player.result = 2
     user = User.query.get(player.player_id)
     game = Game.query.get(player.game_id)
     user.balance = user.balance + game.pot
-    game.pot = 0
+    # game.pot = 0
     game.updated_at = datetime.now()
     db.session.commit()
+    if message == "":
+        gameMessage(player.player, player.game_id, "winner")
+    else:
+        gameMessage(player.player, player.game_id, "winner:  " + message)
     return
 
 
-def gameDeclareLoser(player):
+def gameDeclareLoser(player, message):
     player.result = 3
     user = User.query.get(player.player_id)
     db.session.commit()
+    if message == "":
+        gameMessage(player.player, player.game_id, "lost")
+    else:
+        gameMessage(player.player, player.game_id, "lost:  " + message)
     return
 
 
